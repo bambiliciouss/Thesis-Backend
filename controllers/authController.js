@@ -1340,7 +1340,11 @@ exports.setDefaultAddress = async (req, res) => {
 
     res
       .status(200)
-      .json({ success: true, message: `Default address set successfully` });
+      .json({
+        success: true,
+        message: `Default address set successfully`,
+        user,
+      });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
