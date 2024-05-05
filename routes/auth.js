@@ -93,6 +93,7 @@ router.get("/me/addresses", isAuthenticatedUser, getAllAddresses);
 router.get("/me/address/details/:id", isAuthenticatedUser, getAddressDetails);
 router.put(
   "/me/setdefault/address/:id",
+  isAuthenticatedUser,
   setDefaultAddress
 );
 
