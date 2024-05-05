@@ -25,25 +25,25 @@ app.use(cookieParser());
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
-// app.use(cors({
-//     origin: 'https://hydro-web-frontend.vercel.app',
-//     credentials: true
-// }));
+app.use(cors({
+    origin: 'https://hydro-web-frontend.vercel.app',
+    credentials: true
+}));
 
-const allowedOrigins = ["https://hydro-web-frontend.vercel.app"];
+// const allowedOrigins = ["https://hydro-web-frontend.vercel.app"];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     credentials: true,
+//   })
+// );
 
 app.use("/api/v1", review);
 app.use("/api/v1", auth);
