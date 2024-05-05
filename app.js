@@ -26,7 +26,7 @@ app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 app.use(cors({
-    origin: 'https://hydro-web-frontend.vercel.app/',
+    origin: 'https://hydro-web-frontend.vercel.app',
     credentials: true
 }));
 
