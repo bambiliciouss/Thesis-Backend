@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const cors = require('cors');
+const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const auth = require("./routes/auth");
 const gallon = require("./routes/gallon");
@@ -16,7 +16,7 @@ const phyChemTest = require("./routes/phychemtest");
 const businesspermit = require("./routes/businesspermit");
 const storeaddress = require("./routes/storeaddress");
 const superadmin = require("./routes/superadmin");
-const review = require('./routes/review')
+const review = require("./routes/review");
 const errorMiddleware = require("./middlewares/errors");
 
 app.use(cookieParser());
@@ -25,11 +25,25 @@ app.use(cookieParser());
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
-app.use(cors({
-    origin: 'https://hydro-web-frontend.vercel.app',
-    credentials: true
-}));
+// app.use(cors({
+//     origin: 'https://hydro-web-frontend.vercel.app',
+//     credentials: true
+// }));
 
+const allowedOrigins = ["https://hydro-web-frontend.vercel.app"];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use("/api/v1", review);
 app.use("/api/v1", auth);
