@@ -1314,10 +1314,10 @@ exports.getAddressDetails = async (req, res) => {
 exports.setDefaultAddress = async (req, res) => {
   try {
     const addressId = req.params.id;
-    const userId = req.user.id;
+  
 
     // Find the user by userId
-    const user = await User.findById(userId);
+    const user = await User.findById(req.user.id);
 
     // Check if the user exists
     if (!user) {
