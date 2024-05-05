@@ -1317,7 +1317,8 @@ exports.setDefaultAddress = async (req, res) => {
   
 
     // Find the user by userId
-    const user = await User.findById(req.user.id);
+    const user = await User.findById("65e0756c27609322a9fd5a21"
+  );
 
     // Check if the user exists
     if (!user) {
