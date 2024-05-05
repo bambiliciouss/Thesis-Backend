@@ -1311,14 +1311,66 @@ exports.getAddressDetails = async (req, res) => {
   }
 };
 
+// exports.setDefaultAddress = async (req, res) => {
+//   try {
+//     const addressId = req.params.id;
+  
+
+//     // Find the user by userId
+//     const user = await User.findById("65e0756c27609322a9fd5a21"
+//   );
+
+//     // Check if the user exists
+//     if (!user) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "User not found" });
+//     }
+
+//     // Loop through user's addresses to set isDefault
+//     user.addresses.forEach((address) => {
+//       if (address._id.toString() === addressId) {
+//         address.isDefault = true;
+//       } else {
+//         address.isDefault = false;
+//       }
+//     });
+
+//     // Save the updated user
+//     await user.save();
+
+//     res
+//       .status(200)
+//       .json({
+//         success: true,
+//         message: `Default address set successfully`,
+//         user,
+//       });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: `Internal Server Error hbhjkbkjhbjkhg`,
+//       error: error.message,
+//     });
+//   }
+// };
+
 exports.setDefaultAddress = async (req, res) => {
   try {
     const addressId = req.params.id;
-  
 
-    // Find the user by userId
-    const user = await User.findById("65e0756c27609322a9fd5a21"
-  );
+    // Find the user by userId and update the default address
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $set: { 'addresses.$[elem].isDefault': true },
+      },
+      {
+        arrayFilters: [{ 'elem._id': addressId }],
+        new: true, // Return the modified document
+      }
+    );
 
     // Check if the user exists
     if (!user) {
@@ -1326,18 +1378,6 @@ exports.setDefaultAddress = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
-
-    // Loop through user's addresses to set isDefault
-    user.addresses.forEach((address) => {
-      if (address._id.toString() === addressId) {
-        address.isDefault = true;
-      } else {
-        address.isDefault = false;
-      }
-    });
-
-    // Save the updated user
-    await user.save();
 
     res
       .status(200)
@@ -1350,7 +1390,7 @@ exports.setDefaultAddress = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: `Internal Server Error hbhjkbkjhbjkhg`,
+      message: `Internal Server Error`,
       error: error.message,
     });
   }
