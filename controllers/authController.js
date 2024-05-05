@@ -1345,7 +1345,7 @@ exports.setDefaultAddress = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: `Internal Server Error UserID:${userId} aDDRESSID ${addressId}`,
+      message: `Internal Server Error hbhjkbkjhbjkhg`,
       error: error.message,
     });
   }
