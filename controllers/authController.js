@@ -1343,9 +1343,7 @@ exports.setDefaultAddress = async (req, res) => {
       .json({ success: true, message: "Default address set successfully" });
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: error });
   }
 };
 
@@ -1593,7 +1591,7 @@ exports.updateProfileMobile = async (req, res, next) => {
 
 exports.addAddressMobile = async (req, res) => {
   try {
-    console.log("Data",req.body);
+    console.log("Data", req.body);
     const userId = req.params.id;
     const user = await User.findById(userId);
 
