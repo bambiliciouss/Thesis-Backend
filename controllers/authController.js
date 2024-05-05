@@ -1343,7 +1343,9 @@ exports.setDefaultAddress = async (req, res) => {
       .json({ success: true, message: "Default address set successfully" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: error });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error", error });
   }
 };
 
