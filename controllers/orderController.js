@@ -108,7 +108,11 @@ exports.addOrderStatus = async (req, res, next) => {
 
     const updatedOrder = await order.save();
 
-    res.json(updatedOrder);
+    res.status(200).json({
+      success: true,
+      updatedOrder,
+      message: "Update Order Status Success",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -303,16 +307,18 @@ exports.getOrderTransactions = async (req, res, next) => {
     const branch = req.params.id;
     const { filter } = req.query; // 'daily', 'weekly', 'monthly'
     // Query the database for the earliest order
-    const firstOrder = await Order
-      .find({ 'selectedStore.store': new mongoose.Types.ObjectId(branch) })
+    const firstOrder = await Order.find({
+      "selectedStore.store": new mongoose.Types.ObjectId(branch),
+    })
       .sort({ createdAt: 1 })
       .limit(1);
 
-    let startDate = firstOrder.length > 0 ? firstOrder[0].createdAt : new Date();
+    let startDate =
+      firstOrder.length > 0 ? firstOrder[0].createdAt : new Date();
     let endDate = new Date();
 
     let groupBy;
-    if (filter === 'daily') {
+    if (filter === "daily") {
       startDate = new Date();
       startDate.setHours(0, 0, 0, 0); // set the time to the start of today
 
@@ -320,8 +326,10 @@ exports.getOrderTransactions = async (req, res, next) => {
       endDate.setDate(endDate.getDate() + 1); // set the date to tomorrow
       endDate.setHours(0, 0, 0, 0); // set the time to the start of tomorrow
 
-      groupBy = { $dateToString: { format: "%Y-%m-%d %H:00", date: "$createdAt" } };
-    } else if (filter === 'weekly') {
+      groupBy = {
+        $dateToString: { format: "%Y-%m-%d %H:00", date: "$createdAt" },
+      };
+    } else if (filter === "weekly") {
       const today = new Date();
 
       startDate = new Date();
@@ -332,33 +340,47 @@ exports.getOrderTransactions = async (req, res, next) => {
       endDate.setHours(23, 59, 59, 999); // set the time to the end of the day
 
       groupBy = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
-    } else if (filter === 'monthly') {
+    } else if (filter === "monthly") {
       groupBy = { $dateToString: { format: "%m", date: "$createdAt" } };
-    } else if (filter === 'yearly') {
+    } else if (filter === "yearly") {
       groupBy = { $year: "$createdAt" };
     }
 
     const transactions = await Order.aggregate([
       {
         $match: {
-          'selectedStore.store': new mongoose.Types.ObjectId(branch),
+          "selectedStore.store": new mongoose.Types.ObjectId(branch),
           createdAt: { $gte: startDate, $lt: endDate },
           $or: [
-            { containerStatus: { $regex: "Walk In", $options: "i" }, orderclaimingOption: { $regex: "Walk In", $options: "i" } },
-            { containerStatus: { $regex: "Walk In", $options: "i" }, orderclaimingOption: { $regex: "Deliver", $options: "i" } },
-            { containerStatus: { $regex: "Pick Up", $options: "i" }, orderclaimingOption: { $regex: "Walk In", $options: "i" } },
-            { containerStatus: { $regex: "Pick Up", $options: "i" }, orderclaimingOption: { $regex: "Deliver", $options: "i" } }
-          ]
-        }
+            {
+              containerStatus: { $regex: "Walk In", $options: "i" },
+              orderclaimingOption: { $regex: "Walk In", $options: "i" },
+            },
+            {
+              containerStatus: { $regex: "Walk In", $options: "i" },
+              orderclaimingOption: { $regex: "Deliver", $options: "i" },
+            },
+            {
+              containerStatus: { $regex: "Pick Up", $options: "i" },
+              orderclaimingOption: { $regex: "Walk In", $options: "i" },
+            },
+            {
+              containerStatus: { $regex: "Pick Up", $options: "i" },
+              orderclaimingOption: { $regex: "Deliver", $options: "i" },
+            },
+          ],
+        },
       },
       {
         $group: {
           _id: {
             date: groupBy,
-            status: { $concat: ["$containerStatus", " - ", "$orderclaimingOption"] }
+            status: {
+              $concat: ["$containerStatus", " - ", "$orderclaimingOption"],
+            },
           },
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
       {
         $group: {
@@ -366,25 +388,38 @@ exports.getOrderTransactions = async (req, res, next) => {
           orders: {
             $push: {
               status: "$_id.status",
-              count: "$count"
-            }
-          }
-        }
+              count: "$count",
+            },
+          },
+        },
       },
       {
         $project: {
           _id: { $toString: "$_id" },
           orders: 1,
-        }
+        },
       },
       {
-        $sort: { "_id": 1 }
-      }
+        $sort: { _id: 1 },
+      },
     ]);
 
-    if (filter === 'monthly') {
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      transactions.forEach(transaction => {
+    if (filter === "monthly") {
+      const monthNames = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      transactions.forEach((transaction) => {
         transaction._id = monthNames[parseInt(transaction._id) - 1];
       });
     }
@@ -392,7 +427,7 @@ exports.getOrderTransactions = async (req, res, next) => {
       success: true,
       transactions,
       startDate: startDate.toLocaleDateString(),
-      endDate: endDate.toLocaleDateString()
+      endDate: endDate.toLocaleDateString(),
     });
   } catch (error) {
     res
@@ -401,23 +436,24 @@ exports.getOrderTransactions = async (req, res, next) => {
   }
 };
 
-
 exports.getOrdersByGallonType = async (req, res, next) => {
   try {
     const branchID = req.params.id;
     const { filter } = req.query;
 
     // Query the database for the earliest order
-    const firstOrder = await Order
-      .find({ 'selectedStore.store': new mongoose.Types.ObjectId(branchID) })
+    const firstOrder = await Order.find({
+      "selectedStore.store": new mongoose.Types.ObjectId(branchID),
+    })
       .sort({ createdAt: 1 })
       .limit(1);
 
-    let startDate = firstOrder.length > 0 ? firstOrder[0].createdAt : new Date();
+    let startDate =
+      firstOrder.length > 0 ? firstOrder[0].createdAt : new Date();
     let endDate = new Date();
 
     let groupBy;
-    if (filter === 'daily') {
+    if (filter === "daily") {
       startDate = new Date();
       startDate.setHours(0, 0, 0, 0); // set the time to the start of today
 
@@ -425,8 +461,10 @@ exports.getOrdersByGallonType = async (req, res, next) => {
       endDate.setDate(endDate.getDate() + 1); // set the date to tomorrow
       endDate.setHours(0, 0, 0, 0); // set the time to the start of tomorrow
 
-      groupBy = { $dateToString: { format: "%Y-%m-%d %H:00", date: "$createdAt" } };
-    } else if (filter === 'weekly') {
+      groupBy = {
+        $dateToString: { format: "%Y-%m-%d %H:00", date: "$createdAt" },
+      };
+    } else if (filter === "weekly") {
       const today = new Date();
 
       startDate = new Date();
@@ -437,33 +475,32 @@ exports.getOrdersByGallonType = async (req, res, next) => {
       endDate.setHours(23, 59, 59, 999); // set the time to the end of the day
 
       groupBy = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
-    } else if (filter === 'monthly') {
+    } else if (filter === "monthly") {
       groupBy = { $dateToString: { format: "%m", date: "$createdAt" } };
-    } else if (filter === 'yearly') {
+    } else if (filter === "yearly") {
       groupBy = { $year: "$createdAt" };
     }
     const orders = await Order.aggregate([
       {
         $match: {
-          'selectedStore.store': new mongoose.Types.ObjectId(branchID),
-          createdAt: { $gte: startDate, $lt: endDate }
-        }
-
+          "selectedStore.store": new mongoose.Types.ObjectId(branchID),
+          createdAt: { $gte: startDate, $lt: endDate },
+        },
       },
       {
         $facet: {
-          "Refill": [
-            { $match: { "orderItems": { $exists: true, $ne: [] } } },
+          Refill: [
+            { $match: { orderItems: { $exists: true, $ne: [] } } },
             { $unwind: "$orderItems" },
             {
               $group: {
                 _id: {
                   date: groupBy,
                   gallon: "$orderItems.gallon",
-                  typeName: "$orderItems.type"
+                  typeName: "$orderItems.type",
                 },
-                count: { $sum: "$orderItems.quantity" }
-              }
+                count: { $sum: "$orderItems.quantity" },
+              },
             },
             {
               $group: {
@@ -472,47 +509,47 @@ exports.getOrdersByGallonType = async (req, res, next) => {
                   $push: {
                     gallon: "$_id.gallon",
                     typeName: "$_id.typeName",
-                    count: "$count"
-                  }
-                }
-              }
+                    count: "$count",
+                  },
+                },
+              },
             },
             {
               $project: {
                 _id: { $toString: "$_id" },
                 orders: 1,
-              }
+              },
             },
             {
               $sort: {
-                "_id": 1
-              }
-            }
+                _id: 1,
+              },
+            },
           ],
           "New Container": [
-            { $match: { "orderProducts": { $exists: true, $ne: [] } } },
+            { $match: { orderProducts: { $exists: true, $ne: [] } } },
             { $unwind: "$orderProducts" },
             {
               $group: {
                 _id: {
                   date: groupBy,
                   gallon: "$orderProducts.product",
-                  typeName: "$orderProducts.type"
+                  typeName: "$orderProducts.type",
                 },
 
-                count: { $sum: "$orderProducts.quantity" }
-              }
+                count: { $sum: "$orderProducts.quantity" },
+              },
             },
             {
               $lookup: {
                 from: "typeofgallons",
                 localField: "_id.typeName",
                 foreignField: "_id",
-                as: "type"
-              }
+                as: "type",
+              },
             },
             {
-              $unwind: "$type"
+              $unwind: "$type",
             },
             {
               $group: {
@@ -521,44 +558,55 @@ exports.getOrdersByGallonType = async (req, res, next) => {
                   $push: {
                     gallon: "$_id.gallon",
                     typeName: "$type.typeofGallon",
-                    count: "$count"
-                  }
-                }
-              }
+                    count: "$count",
+                  },
+                },
+              },
             },
             {
               $project: {
                 _id: { $toString: "$_id" },
                 orders: 1,
-                count: 1
-              }
+                count: 1,
+              },
             },
             {
               $sort: {
-                "_id": 1
-              }
-            }
-
-          ]
-        }
-      }
+                _id: 1,
+              },
+            },
+          ],
+        },
+      },
     ]);
-    if (filter === 'monthly') {
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      orders.forEach(order => {
-        order.Refill.forEach(refill => {
+    if (filter === "monthly") {
+      const monthNames = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      orders.forEach((order) => {
+        order.Refill.forEach((refill) => {
           refill._id = monthNames[parseInt(refill._id) - 1];
-        })
-        order["New Container"].forEach(newContainer => {
+        });
+        order["New Container"].forEach((newContainer) => {
           newContainer._id = monthNames[parseInt(newContainer._id) - 1];
-
-        })
+        });
       });
     }
     res.json({
       orders,
       startDate: startDate.toLocaleDateString(),
-      endDate: endDate.toLocaleDateString()
+      endDate: endDate.toLocaleDateString(),
     });
   } catch (err) {
     console.error(err);
@@ -578,16 +626,19 @@ exports.getOrderByBarangay = async (req, res, next) => {
     let barangayCondition;
 
     if (Array.isArray(storeBarangay)) {
-      barangayCondition = { $exists: true, $in: storeBarangay.map(barangay => barangay.barangay) };
+      barangayCondition = {
+        $exists: true,
+        $in: storeBarangay.map((barangay) => barangay.barangay),
+      };
     } else {
       barangayCondition = { $exists: true, $eq: storeBarangay.barangay };
     }
     const result = await Order.aggregate([
       {
         $match: {
-          'selectedStore.store': new mongoose.Types.ObjectId(branch),
-          'deliveryAddress.barangay': barangayCondition
-        }
+          "selectedStore.store": new mongoose.Types.ObjectId(branch),
+          "deliveryAddress.barangay": barangayCondition,
+        },
       },
       {
         $facet: {
@@ -595,32 +646,34 @@ exports.getOrderByBarangay = async (req, res, next) => {
             {
               $group: {
                 _id: "$deliveryAddress.barangay",
-                count: { $sum: 1 }
-              }
-            }
+                count: { $sum: 1 },
+              },
+            },
           ],
           totalOrders: [
             {
               $group: {
                 _id: null,
-                count: { $sum: 1 }
-              }
-            }
-          ]
-        }
-      }
+                count: { $sum: 1 },
+              },
+            },
+          ],
+        },
+      },
     ]);
-    const totalOrders = result[0].totalOrders.length > 0 ? result[0].totalOrders[0].count : 0;
+    const totalOrders =
+      result[0].totalOrders.length > 0 ? result[0].totalOrders[0].count : 0;
     res.status(200).json({
       success: true,
       orders: result[0].orders,
-      totalOrders: totalOrders
+      totalOrders: totalOrders,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };
-
 
 exports.getAcceptedAndDeliveredOrders = async (req, res, next) => {
   try {
@@ -635,8 +688,9 @@ exports.getAcceptedAndDeliveredOrders = async (req, res, next) => {
       endDate = new Date(year, month % 12, 1); // if month is December, set endDate to January of the next year
     } else {
       // If no month and year are provided, set startDate and endDate to cover all possible dates
-      const firstOrder = await Order
-        .find({ 'selectedStore.store': new mongoose.Types.ObjectId(branch) })
+      const firstOrder = await Order.find({
+        "selectedStore.store": new mongoose.Types.ObjectId(branch),
+      })
         .sort({ createdAt: 1 })
         .limit(1);
 
@@ -646,26 +700,124 @@ exports.getAcceptedAndDeliveredOrders = async (req, res, next) => {
 
     const employees = await Order.aggregate([
       { $unwind: "$orderStatus" },
-      { $match: { "orderStatus.orderLevel": "Order Accepted", "selectedStore.store": new mongoose.Types.ObjectId(branch), createdAt: { $gte: startDate, $lt: endDate }, } },
-      { $lookup: { from: "users", localField: "orderStatus.staff", foreignField: "_id", as: "staff" } },
+      {
+        $match: {
+          "orderStatus.orderLevel": "Order Accepted",
+          "selectedStore.store": new mongoose.Types.ObjectId(branch),
+          createdAt: { $gte: startDate, $lt: endDate },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "orderStatus.staff",
+          foreignField: "_id",
+          as: "staff",
+        },
+      },
       { $unwind: "$staff" },
-      { $group: { _id: { month: { $month: "$createdAt" }, name: { $concat: ["$staff.fname", " ", "$staff.lname"] } }, count: { $sum: 1 } } },
-      { $project: { _id: 0, name: "$_id.name", count: 1, month: { $let: { vars: { months: ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] }, in: { $arrayElemAt: ["$$months", "$_id.month"] } } } } },
-      { $sort: { count: -1, "name": 1 } },
-      { $limit: 10 }
+      {
+        $group: {
+          _id: {
+            month: { $month: "$createdAt" },
+            name: { $concat: ["$staff.fname", " ", "$staff.lname"] },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id.name",
+          count: 1,
+          month: {
+            $let: {
+              vars: {
+                months: [
+                  "",
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ],
+              },
+              in: { $arrayElemAt: ["$$months", "$_id.month"] },
+            },
+          },
+        },
+      },
+      { $sort: { count: -1, name: 1 } },
+      { $limit: 10 },
     ]);
-    
+
     let groupBy;
     // Get counts for riders who delivered orders
     const riders = await Order.aggregate([
       { $unwind: "$orderStatus" },
-      { $match: { "orderStatus.orderLevel": "Delivered", "selectedStore.store": new mongoose.Types.ObjectId(branch), createdAt: { $gte: startDate, $lt: endDate }, } },
-      { $lookup: { from: "users", localField: "orderStatus.staff", foreignField: "_id", as: "staff" } },
+      {
+        $match: {
+          "orderStatus.orderLevel": "Delivered",
+          "selectedStore.store": new mongoose.Types.ObjectId(branch),
+          createdAt: { $gte: startDate, $lt: endDate },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "orderStatus.staff",
+          foreignField: "_id",
+          as: "staff",
+        },
+      },
       { $unwind: "$staff" },
-      { $group: { _id: { month: { $month: "$createdAt" }, name: { $concat: ["$staff.fname", " ", "$staff.lname"] } }, count: { $sum: 1 } } },
-      { $project: { _id: 0, name: "$_id.name", count: 1, month: { $let: { vars: { months: ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] }, in: { $arrayElemAt: ["$$months", "$_id.month"] } } } } },
-      { $sort: { count: -1, "name": 1 } },
-      { $limit: 10 }
+      {
+        $group: {
+          _id: {
+            month: { $month: "$createdAt" },
+            name: { $concat: ["$staff.fname", " ", "$staff.lname"] },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id.name",
+          count: 1,
+          month: {
+            $let: {
+              vars: {
+                months: [
+                  "",
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ],
+              },
+              in: { $arrayElemAt: ["$$months", "$_id.month"] },
+            },
+          },
+        },
+      },
+      { $sort: { count: -1, name: 1 } },
+      { $limit: 10 },
     ]);
     // if (filter === 'monthly') {
     //   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -676,9 +828,11 @@ exports.getAcceptedAndDeliveredOrders = async (req, res, next) => {
     res.status(200).json({
       success: true,
       employees: employees,
-      riders: riders
+      riders: riders,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
-}
+};
