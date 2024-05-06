@@ -30,7 +30,8 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 //     credentials: true
 // }));
 
-const allowedOrigins = ["https://hydro-web-frontend.vercel.app"];
+// const allowedOrigins = ["https://hydro-web-frontend.vercel.app"];
+const allowedOrigins = ["https://crownprincess.online"];
 
 app.use(
   cors({
