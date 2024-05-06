@@ -60,7 +60,7 @@ exports.registerUser = async (req, res, next) => {
     // const url = `${process.env.BASE_URL}/users/${user._id}/verify/${token.token}`;
     // await sendEmail(user.email, `Hello Mr.Broccoli, ${user.fname}`, url);
     const url = `${process.env.BASE_URL}/${user._id}/verify/${token.token}`;
-    await sendEmail(user.email, "Aquatic Dragon", url, user);
+    await sendEmail(user.email, "Water Delivery Station", url, user);
 
     res
       .status(201)
@@ -145,7 +145,7 @@ exports.registerAdmin = async (req, res, next) => {
     // const url = `${process.env.BASE_URL}/users/${user._id}/verify/${token.token}`;
     // await sendEmail(user.email, `Hello Mr.Broccoli, ${user.fname}`, url);
     const url = `${process.env.BASE_URL}/${user._id}/verify/${token.token}`;
-    await sendEmail(user.email, "Aquatic Dragon", url, user);
+    await sendEmail(user.email, "Water Delivery Station", url, user);
 
     res
       .status(201)
@@ -253,7 +253,7 @@ exports.LoginUser = async (req, res, next) => {
           );
 
           const url = `${process.env.BASE_URL}/${user._id}/verify/${token.token}`;
-          await sendEmail(user.email, "Aquatic Dragon", url, user);
+          await sendEmail(user.email, "Water Delivery Station", url, user);
 
           res.status(400).json({
             message:
@@ -460,7 +460,7 @@ exports.forgotPassword = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     const url = `${process.env.BASE_URL}/password/reset/${resetToken}`;
-    await sendEmailReset(user.email, "Aquatic Dragon", url, user);
+    await sendEmailReset(user.email, "Water Delivery Station", url, user);
 
     res.status(200).json({
       success: true,
@@ -743,7 +743,7 @@ exports.registerRider = async (req, res, next) => {
     }).save();
 
     const url = `${process.env.BASE_URL}/${user._id}/verify/${token.token}`;
-    await sendEmail(user.email, "Aquatic Dragon", url, user);
+    await sendEmail(user.email, "Water Delivery Station", url, user);
 
     res.status(201).json({
       message: "An Email sent to your rider account, please verify",
