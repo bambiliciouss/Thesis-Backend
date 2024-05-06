@@ -24,7 +24,7 @@ router.route("/orders/me").get(isAuthenticatedUser, myOrders);
 router.route("/order/:id").post(isAuthenticatedUser, addOrderStatus);
 router
   .route("/order/assign/rider/:id")
-  .put(isAuthenticatedUser, addOrderStatuswithRider);
+  .post(isAuthenticatedUser, addOrderStatuswithRider);
 
 router
   .route("/admin/orders/")
