@@ -30,28 +30,28 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 //     credentials: true
 // }));
 
-app.use(
-  cors({
-    origin: "https://crownprincess.online",
-    credentials: true,
-  })
-);
-
-// const allowedOrigins = ["https://hydro-web-frontend.vercel.app"];
-// const allowedOrigins = ["https://crownprincess.online"];
-
 // app.use(
 //   cors({
-//     origin: (origin, callback) => {
-//       if (!origin || allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error("Not allowed by CORS"));
-//       }
-//     },
+//     origin: "https://crownprincess.online",
 //     credentials: true,
 //   })
 // );
+
+// const allowedOrigins = ["https://hydro-web-frontend.vercel.app"];
+const allowedOrigins = ["https://crownprincess.online"];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use("/api/v1", review);
 app.use("/api/v1", auth);
