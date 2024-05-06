@@ -7,13 +7,16 @@ const ErrorHandler = require("../utils/errorHandler");
 // Checks if user is authenticated or not
 
 exports.isAuthenticatedUser = async (req, res, next) => {
-  let token;
+  // let token;
 
-  if (req.headers.authorization) {
-    token = req.headers.authorization;
-  } else if (req.cookies.token) {
-    token = req.cookies.token;
-  }
+
+  // if (req.headers.authorization) {
+  //   token = req.headers.authorization;
+  // } else if (req.cookies.token) {
+  //   token = req.cookies.token;
+  // }
+
+  const token = req.cookies.token;
 
   if (!token) {
     return next(new ErrorHandler("Login first to access this resource.", 401));

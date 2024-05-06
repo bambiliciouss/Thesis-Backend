@@ -139,7 +139,13 @@ exports.addOrderStatuswithRider = async (req, res, next) => {
 
     const updatedOrder = await order.save();
 
-    res.json(updatedOrder);
+    // res.json(updatedOrder);
+
+    res.status(200).json({
+      success: true,
+      updatedOrder,
+      message: "Update Order Status Success",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
