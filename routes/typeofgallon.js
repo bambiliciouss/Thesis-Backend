@@ -38,5 +38,4 @@ router.get(
   isAuthenticatedUser,
   AllTypesGallonsForOrder
 );
-AllTypesGallonsForOrder;
 module.exports = router;
