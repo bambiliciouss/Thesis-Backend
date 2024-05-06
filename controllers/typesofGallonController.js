@@ -125,3 +125,22 @@ exports.getSingleGallonType = async (req, res, next) => {
       .json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+
+exports.AllTypesGallonsForOrder = async (req, res, next) => {
+  try {
+    const typeGallon = await TypeOfGallon.find({
+      deleted: false,
+      storebranch: req.params.id,
+      typeofGallon: { $regex: /Gallon/, $options: 'i' } // Case insensitive match for "Gallon"
+    });
+    res.status(200).json({
+      success: true,
+      typeGallon,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
