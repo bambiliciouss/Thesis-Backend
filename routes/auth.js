@@ -91,7 +91,7 @@ router.put("/me/update/address/:id", isAuthenticatedUser, editAddress);
 router.delete("/me/address/:id", isAuthenticatedUser, deleteAddress);
 router.get("/me/addresses", isAuthenticatedUser, getAllAddresses);
 router.get("/me/address/details/:id", isAuthenticatedUser, getAddressDetails);
-router.put(
+router.post(
   "/me/setdefault/address/:id",
   isAuthenticatedUser,
   setDefaultAddress
