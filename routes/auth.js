@@ -38,6 +38,26 @@ const {
   addAddressMobile,
 } = require("../controllers/authController");
 
+
+const authenticateUserAddress = async (req, res, next) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    // Decode the token and attach user information to req.user
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.userId);
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+};
+
+
+
 const { isAuthenticatedUser, authorizeRoles } = require("../middlewares/auth");
 router.post("/register", upload.single("avatar"), registerUser);
 
@@ -93,7 +113,7 @@ router.get("/me/addresses", isAuthenticatedUser, getAllAddresses);
 router.get("/me/address/details/:id", isAuthenticatedUser, getAddressDetails);
 router.post(
   "/me/setdefault/address/:id",
-  isAuthenticatedUser,
+  authenticateUserAddress,
   setDefaultAddress
 );
 
