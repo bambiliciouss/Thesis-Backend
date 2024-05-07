@@ -1645,3 +1645,31 @@ exports.addAddressMobile = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
+exports.BranchUsers = async (req, res, next) => {
+  try {
+    // Get all the orders from the admin's branches only
+    const orders = await Order.find({
+      "selectedStore.store": req.params.id,
+    })
+      .populate("customer", "fname lname avatar addresses role");
+
+    // Extract unique user IDs from orders
+    const userIds = [...new Set(orders.map((order) => order.customer._id))];
+
+    // Query users collection to find users with transactions
+    const usersWithTransactions = await User.find({ _id: { $in: userIds } });
+
+    const counter = usersWithTransactions.length;
+
+    res.status(200).json({
+      success: true,
+      counter,
+      usersWithTransactions,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};

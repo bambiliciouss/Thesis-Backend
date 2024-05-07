@@ -36,6 +36,7 @@ const {
   SingleBranchUsers,
   updateProfileMobile,
   addAddressMobile,
+  BranchUsers
 } = require("../controllers/authController");
 
 
@@ -158,6 +159,15 @@ router.get(
   isAuthenticatedUser,
   authorizeRoles("admin"),
   SingleBranchUsers
+);
+
+
+
+router.get(
+  "/store/customerlist/:id",
+  isAuthenticatedUser,
+  authorizeRoles("admin"),
+  BranchUsers
 );
 
 router.get(
