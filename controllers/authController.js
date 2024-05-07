@@ -293,7 +293,7 @@ exports.getProfile = async (req, res, next) => {
 exports.logout = async (req, res, next) => {
   try {
     res.cookie("token", null, {
-      expires: new Date(Date.now()),
+      expires: new Date(0),
       httpOnly: true,
     });
 
@@ -1645,5 +1645,3 @@ exports.addAddressMobile = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
-
-
