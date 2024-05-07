@@ -204,7 +204,7 @@ exports.allOrdersAdmin = async (req, res, next) => {
 exports.getSingleOrder = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate("customer", "fname lname email role")
+      .populate("customer", "fname lname email")
       .populate({
         path: "orderProducts.type",
         model: "TypeOfGallon",
@@ -213,7 +213,7 @@ exports.getSingleOrder = async (req, res, next) => {
       .populate({
         path: "orderStatus.staff",
         model: "User",
-        select: "fname lname",
+        select: "fname lname role",
       })
       .exec();
     if (!order) {
