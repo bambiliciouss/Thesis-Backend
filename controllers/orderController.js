@@ -204,7 +204,7 @@ exports.allOrdersAdmin = async (req, res, next) => {
 exports.getSingleOrder = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate("customer", "fname lname email")
+      .populate("customer", "fname lname email role")
       .populate({
         path: "orderProducts.type",
         model: "TypeOfGallon",
