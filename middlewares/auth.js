@@ -16,8 +16,8 @@ exports.isAuthenticatedUser = async (req, res, next) => {
   //   token = req.cookies.token;
   // }
 
-  const token = req.cookies.token;
-
+  // const token = req.cookies.token;
+  const { token } = req.cookies;
   if (!token) {
     return next(new ErrorHandler("Login first to access this resource.", 401));
   }

@@ -32,7 +32,8 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 app.use(
   cors({
-    origin: "https://crownprincess.online",
+    // origin: "https://crownprincess.online",
+    origin: ['http://localhost:3000','https://crownprincess.online'], 
     credentials: true,
   })
 );
