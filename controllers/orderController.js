@@ -861,13 +861,24 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
 
     const orders = await Order.find({
       "selectedStore.store": storeBranchID,
-      orderStatus: {
+      "orderStatus": {
         $elemMatch: {
           staff: req.user.id,
-          orderLevel: "Out for Delivery",
+          orderLevel: "Out for Delivery" // Adding condition for orderLevel
         },
+      }
+    }).populate({
+      path: "customer",
+      select: "fname lname"
+    }).populate({
+      path: "orderStatus",
+      match: {
+        staff: req.user.id,
+        orderLevel: "Out for Delivery" // Adding condition for orderLevel
       },
-    }).populate("customer", "fname lname");
+      options: { sort: { createdAt: -1 }, limit: 1 } // Limit to latest orderStatus
+    });
+
 
     const orderCount = orders.length;
 
