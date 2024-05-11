@@ -859,33 +859,34 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
 
     const storeBranchID = rider.storebranch;
 
+    // Find orders with rider assigned and matching store branch
     const orders = await Order.find({
       "selectedStore.store": storeBranchID,
-      "orderStatus": {
+      orderStatus: {
         $elemMatch: {
-          staff: req.user.id,
-          orderLevel: "Out for Delivery" // Adding condition for orderLevel
-        },
+          staff: req.user.id
+        }
       }
     }).populate({
       path: "customer",
       select: "fname lname"
     }).populate({
       path: "orderStatus",
-      match: {
-        staff: req.user.id,
-        orderLevel: "Out for Delivery" // Adding condition for orderLevel
-      },
-      options: { sort: { createdAt: -1 }, limit: 1 } // Limit to latest orderStatus
+      options: { sort: { createdAt: -1 }, limit: 1 }, // Sort orderStatus array by createdAt descending to get the latest
+      match: { orderLevel: "Out for Delivery" } // Filter to only include orderStatus with "Out for Delivery"
     });
 
+    // Filter orders further to include only those with orderStatus matching "Out for Delivery"
+    const filteredOrders = orders.filter(order => {
+      return order.orderStatus.length > 0 && order.orderStatus[0].orderLevel === "Out for Delivery";
+    });
 
-    const orderCount = orders.length;
+    const orderCount = filteredOrders.length;
 
     res.status(200).json({
       success: true,
       orderCount: orderCount,
-      orders: orders,
+      orders: filteredOrders,
     });
   } catch (error) {
     res.status(500).json({
@@ -895,3 +896,4 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
     });
   }
 };
+
