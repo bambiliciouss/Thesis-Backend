@@ -15,6 +15,7 @@ const {
   getOrdersByGallonType,
   getOrderByBarangay,
   getAcceptedAndDeliveredOrders,
+  allOrdersRiderOutforDelivery,
 } = require("../controllers/orderController");
 
 const { isAuthenticatedUser, authorizeRoles } = require("../middlewares/auth");
@@ -35,17 +36,40 @@ router
   .get(isAuthenticatedUser, authorizeRoles("admin"), allOrdersAdmin);
 
 router.route("/order/:id").get(isAuthenticatedUser, getSingleOrder);
-router.get("/admin/all/orders/:id", isAuthenticatedUser, authorizeRoles("admin"), getOrderTransactions);
-router.get("/admin/orders/byGallon/:id",isAuthenticatedUser, authorizeRoles("admin", "employee", "rider"), getOrdersByGallonType);
-router.get("/admin/orders/byBarangay/:id",isAuthenticatedUser, authorizeRoles("admin", "employee", "rider"), getOrderByBarangay);
-router.get("/admin/orders/staff/:id", isAuthenticatedUser, authorizeRoles("admin", "employee", "rider"), getAcceptedAndDeliveredOrders);
+router.get(
+  "/admin/all/orders/:id",
+  isAuthenticatedUser,
+  authorizeRoles("admin"),
+  getOrderTransactions
+);
+router.get(
+  "/admin/orders/byGallon/:id",
+  isAuthenticatedUser,
+  authorizeRoles("admin", "employee", "rider"),
+  getOrdersByGallonType
+);
+router.get(
+  "/admin/orders/byBarangay/:id",
+  isAuthenticatedUser,
+  authorizeRoles("admin", "employee", "rider"),
+  getOrderByBarangay
+);
+router.get(
+  "/admin/orders/staff/:id",
+  isAuthenticatedUser,
+  authorizeRoles("admin", "employee", "rider"),
+  getAcceptedAndDeliveredOrders
+);
 router
   .route("/all/employee/orders/")
   .get(isAuthenticatedUser, authorizeRoles("employee"), allOrdersEmployee);
 
-
-  router
+router
   .route("/all/rider/orders/")
   .get(isAuthenticatedUser, authorizeRoles("rider"), allOrdersRider);
 
+  router
+  .route("/all/rider/orders/out")
+  .get(isAuthenticatedUser, authorizeRoles("rider"), allOrdersRiderOutforDelivery);
+  
 module.exports = router;

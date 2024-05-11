@@ -842,3 +842,45 @@ exports.getAcceptedAndDeliveredOrders = async (req, res, next) => {
       .json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
+  try {
+    const rider = await User.findOne({
+      _id: req.user.id,
+      deleted: false,
+      role: "rider",
+    });
+
+    if (!rider) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Rider not found" });
+    }
+
+    const storeBranchID = rider.storebranch;
+
+    const orders = await Order.find({
+      "selectedStore.store": storeBranchID,
+      orderStatus: {
+        $elemMatch: {
+          staff: req.user.id,
+          orderLevel: "Out for Delivery",
+        },
+      },
+    }).populate("customer", "fname lname");
+
+    const orderCount = orders.length;
+
+    res.status(200).json({
+      success: true,
+      orderCount: orderCount,
+      orders: orders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
