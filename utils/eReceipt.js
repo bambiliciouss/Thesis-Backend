@@ -134,17 +134,20 @@ module.exports = async (email, subject, order) => {
         <div class="invoice-box">
             <table>
                 <tr class="top">
-                    <td colspan="2">
+                    <td colspan="4">
                         <table>
                             <tr>
                                 <td>
                                     ${order.selectedStore.branchNo} <br/>
                                     ${order.selectedStore.address}
                                 </td>
+                                
 
-                                <td>
+                                 <td style="text-align: right;">
                                     Invoice #: ${order._id}<br />
-                                    Created: ${new Date(order.createdAt).toLocaleString()}
+                                    Created: ${new Date(
+                                      order.createdAt
+                                    ).toLocaleString()}
                                 </td>
                             </tr>
                         </table>
@@ -157,8 +160,12 @@ module.exports = async (email, subject, order) => {
                             <tr>
                                 <td>
                                     Delivery Address: <br/>
-                                    ${order.deliveryAddress.houseNo}, ${order.deliveryAddress.purokNum} <br/>
-                                    ${order.deliveryAddress.streetName}, ${order.deliveryAddress.barangay} <br/>
+                                    ${order.deliveryAddress.houseNo}, ${
+      order.deliveryAddress.purokNum
+    } <br/>
+                                    ${order.deliveryAddress.streetName}, ${
+      order.deliveryAddress.barangay
+    } <br/>
                                     ${order.deliveryAddress.city}
                                 </td>
                             </tr>
@@ -174,48 +181,91 @@ module.exports = async (email, subject, order) => {
                     <td>Amount</td>
                 </tr>
     
-                ${order.orderItems.map(item => `
-                    <tr class="item">
-                        <td>${item.type}</td>
-                        <td>${item.quantity}</td>
-                        <td>₱ ${item.price}</td>
-                        <td>${item.quantity * item.price}</td>
-                    </tr>
-                `).join('')}
+   ${
+     order.orderItems.length > 0
+       ? order.orderItems
+           .map(
+             (item) => `
+        <tr class="item">
+            <td>${item.type}</td>
+            <td>${item.quantity}pc(s)</td>
+            <td>₱ ${item.price}.00</td>
+            <td>₱${item.quantity * item.price}.00</td>
+        </tr>
+    `
+           )
+           .join("")
+       : ""
+   }
+                
+${
+  order.orderProducts.length > 0
+    ? order.orderProducts
+        .map(
+          (item) => `
+        <tr class="item">
+            <td>${item.type}</td>
+            <td>${item.quantity}pc(s)</td>
+            <td>₱ ${item.price}.00</td>
+            <td>₱${item.quantity * item.price}.00</td>
+        </tr>
+    `
+        )
+        .join("")
+    : ""
+}
                 
                 
     
-                <tr class="item last">
-                    <td>Delivery Fee</td>
-                    <td>₱ ${order.selectedStore.deliveryFee}</td>
-                </tr>
-    
-                <tr class="total">
-                    <td></td>
-                    <td>Total: ₱ ${order.totalPrice}</td>
-                </tr>
-                
                 <tr>
-					<td>Payment Method</td>
+                    <td>Delivery Fee</td>
+                    <td></td>
+                    <td></td>
+                    <td>₱ ${order.selectedStore.deliveryFee}.00</td>
+                </tr>
+    
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                     <td><strong>Total: ₱ ${order.totalPrice}.00</strong></td>
+                </tr>
+                
+                <tr class="heading">
+					<td>Order Status</td>
+                        <td></td>
+                    <td></td>
+                        <td></td>
+              
 
 				</tr>
-              ${order.orderStatus.map(status => `
+              ${order.orderStatus
+                .map(
+                  (status) => `
                 <tr class="details">
                         <td>  
-                            ${status.orderLevel} - ${new Date(status.datedAt).toLocaleString()}
-                            ${status.staff ? ` <br/>
+                            ${status.orderLevel} - ${new Date(
+                    status.datedAt
+                  ).toLocaleString()}
+                            ${
+                              status.staff
+                                ? ` <br/>
                             Staff: ${status.staff.fname} ${status.staff.lname}<br/>
-                            Role: ${status.staff.role}<br/>
-
-                            ` : ''}
-                        </td>
+                            Role: ${status.staff.role}
+ <hr/>
+                            `
+                                : ""
+                            }
+                        </td> 
                 </tr>
-     `).join('')}
+              
+     `
+                )
+                .join("")}
             </table>
         </div>
     </body>
     </html>
-    
     `;
 
     const mailOptions = {
