@@ -6,6 +6,7 @@ const cloudinary = require("cloudinary");
 const mongoose = require("mongoose");
 const Product = require("../models/product");
 const StoreBarangay = require("../models/storebarangay");
+const eReceipt = require("../utils/eReceipt");
 exports.newOrder = async (req, res, next) => {
   // console.log("order",req.body);
   const {
@@ -843,46 +844,93 @@ exports.getAcceptedAndDeliveredOrders = async (req, res, next) => {
   }
 };
 
-const allOrdersOutforDelivery = async (req, res, next) => {
+exports.getEreceipt = async (req, res, next) => {
   try {
-    // Fetch orders where the given user ID matches the order status staff
-    const orders = await Order.find({
-      "orderStatus.staff": req.user.id,
+    const order = await Order.findById(req.params.id)
+      .populate("customer", "fname lname email")
+      .populate({
+        path: "orderProducts.type",
+        model: "TypeOfGallon",
+        select: "typeofGallon",
+      })
+      .populate({
+        path: "orderStatus.staff",
+        model: "User",
+        select: "fname lname role",
+      })
+      .exec();
+
+    if (!order) {
+      return next(new ErrorHandler("No Order found with this ID", 401));
+    }
+
+    console.log(order.customer.email);
+
+    // const url = `${process.env.BASE_URL}/${order._id}/receipt`;
+    await eReceipt(order.customer.email, "E-receipt", order);
+
+    res.status(200).json({
+      success: true,
+      message: `Email Receipt sent to: ${order.customer.email}`,
     });
-
-    // Initialize an object to store the latest order status of each order
-    const latestOrderStatusMap = {};
-
-    // Iterate through each order to find the latest order status
-    orders.forEach((order) => {
-      const latestStatus = order.orderStatus.reduce((latest, status) => {
-        if (!latest || status.datedAt > latest.datedAt) {
-          return status;
-        } else {
-          return latest;
-        }
-      }, null);
-
-      // Store the latest order status for each order
-      latestOrderStatusMap[order._id] = latestStatus;
-    });
-
-    return latestOrderStatusMap;
   } catch (error) {
-    console.error("Error fetching latest order statuses:", error);
-    throw error;
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };
 
-
-
 exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
   try {
-    const userId = req.user.id; 
-    const latestOrderStatusMap = await allOrdersOutforDelivery(userId);
-    res.status(200).json(latestOrderStatusMap);
+    const rider = await User.findOne({
+      _id: req.user.id,
+      deleted: false,
+      role: "rider",
+    });
+
+    if (!rider) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Rider not found" });
+    }
+
+    const storeBranchID = rider.storebranch;
+
+    const orders = await Order.find({
+      "selectedStore.store": storeBranchID,
+      orderStatus: {
+        $elemMatch: {
+          staff: req.user.id,
+        },
+      },
+    });
+
+    const latestOrderStatus = orders.map((order) => {
+      const orderStatusArray = order.orderStatus;
+      return orderStatusArray[orderStatusArray.length - 1].orderLevel;
+    });
+
+    console.log(latestOrderStatus);
+
+    const orderCount = orders.length;
+
+    const orderDetails = orders.filter((order, index) => {
+      return latestOrderStatus[index] === "Out for Delivery";
+    });
+
+    const orderDetailsCount = orderDetails.length;
+    // console.log(orderDetails);
+
+    res.status(200).json({
+      success: true,
+      orderCount: orderDetailsCount,
+      orders: orderDetails, // Send only order statuses
+    });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 };

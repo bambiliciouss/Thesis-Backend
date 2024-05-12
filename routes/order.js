@@ -16,9 +16,11 @@ const {
   getOrderByBarangay,
   getAcceptedAndDeliveredOrders,
   allOrdersRiderOutforDelivery,
+  getEreceipt,
 } = require("../controllers/orderController");
 
 const { isAuthenticatedUser, authorizeRoles } = require("../middlewares/auth");
+const eReceipt = require("../utils/eReceipt");
 
 router.route("/order/new").post(isAuthenticatedUser, newOrder);
 router.route("/orders/me").get(isAuthenticatedUser, myOrders);
@@ -68,8 +70,13 @@ router
   .route("/all/rider/orders/")
   .get(isAuthenticatedUser, authorizeRoles("rider"), allOrdersRider);
 
-  router
+router
   .route("/all/rider/orders/out")
-  .get(isAuthenticatedUser, authorizeRoles("rider"), allOrdersRiderOutforDelivery);
-  
+  .get(
+    isAuthenticatedUser,
+    authorizeRoles("rider"),
+    allOrdersRiderOutforDelivery
+  );
+
+router.post("/receipt/:id", getEreceipt);
 module.exports = router;
