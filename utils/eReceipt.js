@@ -145,7 +145,9 @@ module.exports = async (email, subject, order) => {
 
                                  <td style="text-align: right;">
                                     Invoice #: ${order._id}<br />
-                                    Created: ${new Date(order.createdAt).toLocaleString()}
+                                    Created: ${new Date(
+                                      order.createdAt
+                                    ).toLocaleString()}
                                 </td>
                             </tr>
                         </table>
@@ -158,8 +160,12 @@ module.exports = async (email, subject, order) => {
                             <tr>
                                 <td>
                                     Delivery Address: <br/>
-                                    ${order.deliveryAddress.houseNo}, ${order.deliveryAddress.purokNum} <br/>
-                                    ${order.deliveryAddress.streetName}, ${order.deliveryAddress.barangay} <br/>
+                                    ${order.deliveryAddress.houseNo}, ${
+      order.deliveryAddress.purokNum
+    } <br/>
+                                    ${order.deliveryAddress.streetName}, ${
+      order.deliveryAddress.barangay
+    } <br/>
                                     ${order.deliveryAddress.city}
                                 </td>
                             </tr>
@@ -175,25 +181,43 @@ module.exports = async (email, subject, order) => {
                     <td>Amount</td>
                 </tr>
     
-   ${order.orderItems.length > 0 ? 
-    order.orderItems.map(item => `
+   ${
+     order.orderItems.length > 0
+       ? order.orderItems
+           .map(
+             (item) => `
         <tr class="item">
             <td>${item.type}</td>
             <td>${item.quantity}pc(s)</td>
             <td>₱ ${item.price}.00</td>
-             <td style="text-align: right;">₱${item.quantity * item.price}.00</td>
+             <td style="text-align: right;">₱${
+               item.quantity * item.price
+             }.00</td>
         </tr>
-    `).join('') : ''}
+    `
+           )
+           .join("")
+       : ""
+   }
                 
-${order.orderProducts.length > 0 ? 
-    order.orderProducts.map(item => `
+${
+  order.orderProducts.length > 0
+    ? order.orderProducts
+        .map(
+          (item) => `
         <tr class="item">
             <td>${item.type.typeofGallon}</td>
             <td>${item.quantity}pc(s)</td>
             <td>₱ ${item.price}.00</td>
-             <td style="text-align: right;">₱${item.quantity * item.price}.00</td>
+             <td style="text-align: right;">₱${
+               item.quantity * item.price
+             }.00</td>
         </tr>
-    `).join('') : ''}
+    `
+        )
+        .join("")
+    : ""
+}
                 
                 
     
@@ -201,37 +225,55 @@ ${order.orderProducts.length > 0 ?
                     <td>Delivery Fee</td>
                     <td></td>
                     <td></td>
-                     <td style="text-align: right;">₱ ${order.selectedStore.deliveryFee}.00</td>
+                     <td style="text-align: right;">₱ ${
+                       order.selectedStore.deliveryFee
+                     }.00</td>
                 </tr>
     
                 <tr>
                     <td></td>
                     <td></td>
                     <td></td>
-                     <td style="text-align: right;"><strong>Total: ₱ ${order.totalPrice}.00</strong></td>
+                     <td style="text-align: right;"><strong>Total: ₱ ${
+                       order.totalPrice
+                     }.00</strong></td>
                 </tr>
                 
                 <tr class="heading">
 					<td>Order Status</td>
-                        <td></td>
-                    <td></td>
+                        <td>Date</td>
+                    <td>Staff</td>
                         <td></td>
               
 
 				</tr>
-              ${order.orderStatus.map(status => `
+              ${order.orderStatus
+                .map(
+                  (status) => `
                 <tr class="details">
                         <td>  
-                            ${status.orderLevel} - ${new Date(status.datedAt).toLocaleString()}
-                            ${status.staff ? ` <br/>
+                            ${status.orderLevel}
+                            </td> 
+                            <td>
+                            ${new Date(status.datedAt).toLocaleString()}
+                         </td>    
+                   
+                            <td> ${
+                              status.staff
+                                ? `
                             Staff: ${status.staff.fname} ${status.staff.lname}<br/>
                             Role: ${status.staff.role}
- <hr/>
-                            ` : ''}
-                        </td> 
+                            </td> 
+
+                            `
+                                : ""
+                            }
+                        </td>  <hr/>
                 </tr>
               
-     `).join('')}
+     `
+                )
+                .join("")}
             </table>
         </div>
     </body>
