@@ -141,7 +141,7 @@ module.exports = async (email, subject, order) => {
                                     ${order.selectedStore.branchNo} <br/>
                                     ${order.selectedStore.address}
                                 </td>
-    
+
                                 <td>
                                     Invoice #: ${order._id}<br />
                                     Created: ${new Date(order.createdAt).toLocaleString()}
@@ -166,22 +166,7 @@ module.exports = async (email, subject, order) => {
                     </td>
                 </tr>
     
-                <tr class="heading">
-                    <td>Payment Method</td>
-                </tr>
-              ${order.orderStatus.map(status => `
-                <tr class="details">
-                        <td>  
-                            <li>${status.orderLevel} - ${new Date(status.datedAt).toLocaleString()}</li>
-                            ${status.staff ? `
-                                <ul>
-                                    <li>Staff: ${status.staff.fname} ${status.staff.lname}</li>
-                                    <li>Role: ${status.staff.role}</li>
-                                </ul>
-                            ` : ''}
-                        </td>
-                </tr>
-     `).join('')}
+             
                 <tr class="heading">
                     <td>Item</td>
                     <td>Quantity</td>
@@ -197,6 +182,8 @@ module.exports = async (email, subject, order) => {
                         <td>${item.quantity * item.price}</td>
                     </tr>
                 `).join('')}
+                
+                
     
                 <tr class="item last">
                     <td>Delivery Fee</td>
@@ -207,6 +194,23 @@ module.exports = async (email, subject, order) => {
                     <td></td>
                     <td>Total: ₱ ${order.totalPrice}</td>
                 </tr>
+                
+                <tr>
+					<td>Payment Method</td>
+
+				</tr>
+              ${order.orderStatus.map(status => `
+                <tr class="details">
+                        <td>  
+                            ${status.orderLevel} - ${new Date(status.datedAt).toLocaleString()}
+                            ${status.staff ? ` <br/>
+                            Staff: ${status.staff.fname} ${status.staff.lname}<br/>
+                            Role: ${status.staff.role}<br/>
+
+                            ` : ''}
+                        </td>
+                </tr>
+     `).join('')}
             </table>
         </div>
     </body>
