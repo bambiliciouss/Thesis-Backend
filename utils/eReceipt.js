@@ -204,7 +204,7 @@ ${
         .map(
           (item) => `
         <tr class="item">
-            <td>${item.type}</td>
+            <td>${item.type.typeofGallon}</td>
             <td>${item.quantity}pc(s)</td>
             <td>₱ ${item.price}.00</td>
             <td>₱${item.quantity * item.price}.00</td>
