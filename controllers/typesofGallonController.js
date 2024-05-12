@@ -60,8 +60,8 @@ exports.updateTypeofGallon = async (req, res, next) => {
       req.body.gallonImage,
       {
         folder: "gallon",
-        width: 150,
-        crop: "scale",
+        // width: 150,
+        // crop: "scale",
       },
       (err) => {
         console.log(err);
