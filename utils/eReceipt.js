@@ -178,7 +178,7 @@ module.exports = async (email, subject, order) => {
                     <td>Item</td>
                     <td>Quantity</td>
                     <td>Price</td>
-                    <td>Amount</td>
+                    <td style="text-align: right;">Amount</td>
                 </tr>
     
    ${
@@ -268,7 +268,7 @@ ${
                             `
                                 : ""
                             }
-                        </td>  <hr/>
+                        </td> 
                 </tr>
               
      `
