@@ -683,217 +683,31 @@ exports.getOrderByBarangay = async (req, res, next) => {
 
 exports.getAcceptedAndDeliveredOrders = async (req, res, next) => {
   try {
-    const branch = req.params.id;
-    // Get the month and year from the request query parameters
-    const month = req.query.month; // 1-12
-    const year = req.query.year; // e.g., 2024
-
-    // If month and year are provided, set startDate and endDate to cover the start and end of the specified month
-    if (month && year) {
-      startDate = new Date(year, month - 1); // months are 0-indexed in JavaScript
-      endDate = new Date(year, month % 12, 1); // if month is December, set endDate to January of the next year
-    } else {
-      // If no month and year are provided, set startDate and endDate to cover all possible dates
-      const firstOrder = await Order.find({
-        "selectedStore.store": new mongoose.Types.ObjectId(branch),
-      })
-        .sort({ createdAt: 1 })
-        .limit(1);
-
-      startDate = firstOrder.length > 0 ? firstOrder[0].createdAt : new Date(0); // default to Unix epoch time if no filter is provided
-      endDate = new Date(); // default to now if no filter is provided
-    }
-
-    const employees = await Order.aggregate([
-      { $unwind: "$orderStatus" },
-      {
-        $match: {
-          "orderStatus.orderLevel": "Order Accepted",
-          "selectedStore.store": new mongoose.Types.ObjectId(branch),
-          createdAt: { $gte: startDate, $lt: endDate },
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "orderStatus.staff",
-          foreignField: "_id",
-          as: "staff",
-        },
-      },
-      { $unwind: "$staff" },
-      {
-        $group: {
-          _id: {
-            month: { $month: "$createdAt" },
-            name: { $concat: ["$staff.fname", " ", "$staff.lname"] },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          name: "$_id.name",
-          count: 1,
-          month: {
-            $let: {
-              vars: {
-                months: [
-                  "",
-                  "January",
-                  "February",
-                  "March",
-                  "April",
-                  "May",
-                  "June",
-                  "July",
-                  "August",
-                  "September",
-                  "October",
-                  "November",
-                  "December",
-                ],
-              },
-              in: { $arrayElemAt: ["$$months", "$_id.month"] },
-            },
-          },
-        },
-      },
-      { $sort: { count: -1, name: 1 } },
-      { $limit: 10 },
-    ]);
-
-    let groupBy;
-    // Get counts for riders who delivered orders
-    const riders = await Order.aggregate([
-      { $unwind: "$orderStatus" },
-      {
-        $match: {
-          "orderStatus.orderLevel": "Delivered",
-          "selectedStore.store": new mongoose.Types.ObjectId(branch),
-          createdAt: { $gte: startDate, $lt: endDate },
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "orderStatus.staff",
-          foreignField: "_id",
-          as: "staff",
-        },
-      },
-      { $unwind: "$staff" },
-      {
-        $group: {
-          _id: {
-            month: { $month: "$createdAt" },
-            name: { $concat: ["$staff.fname", " ", "$staff.lname"] },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          name: "$_id.name",
-          count: 1,
-          month: {
-            $let: {
-              vars: {
-                months: [
-                  "",
-                  "January",
-                  "February",
-                  "March",
-                  "April",
-                  "May",
-                  "June",
-                  "July",
-                  "August",
-                  "September",
-                  "October",
-                  "November",
-                  "December",
-                ],
-              },
-              in: { $arrayElemAt: ["$$months", "$_id.month"] },
-            },
-          },
-        },
-      },
-      { $sort: { count: -1, name: 1 } },
-      { $limit: 10 },
-    ]);
-    // if (filter === 'monthly') {
-    //   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    //   riders.forEach(transaction => {
-    //     transaction._id = monthNames[parseInt(transaction._id) - 1];
-    //   });
-    // }
-    res.status(200).json({
-      success: true,
-      employees: employees,
-      riders: riders,
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
-  }
-};
-
-exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
-  try {
-    const rider = await User.findOne({
-      _id: req.user.id,
-      deleted: false,
-      role: "rider",
-    });
-
-    if (!rider) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Rider not found" });
-    }
-
-    const storeBranchID = rider.storebranch;
-
-    // Find orders with rider assigned and matching store branch
+    // Fetch orders where the given user ID matches the order status staff
     const orders = await Order.find({
-      "selectedStore.store": storeBranchID,
-      orderStatus: {
-        $elemMatch: {
-          staff: req.user.id
+      "orderStatus.staff": userId,
+    });
+
+    // Initialize an object to store the latest order status of each order
+    const latestOrderStatusMap = {};
+
+    // Iterate through each order to find the latest order status
+    orders.forEach((order) => {
+      const latestStatus = order.orderStatus.reduce((latest, status) => {
+        if (!latest || status.datedAt > latest.datedAt) {
+          return status;
+        } else {
+          return latest;
         }
-      }
-    }).populate({
-      path: "customer",
-      select: "fname lname"
-    }).populate({
-      path: "orderStatus",
-      options: { sort: { createdAt: -1 }, limit: 1 }, // Sort orderStatus array by createdAt descending to get the latest
-      match: { orderLevel: "Out for Delivery" } // Filter to only include orderStatus with "Out for Delivery"
+      }, null);
+
+      // Store the latest order status for each order
+      latestOrderStatusMap[order._id] = latestStatus;
     });
 
-    // Filter orders further to include only those with orderStatus matching "Out for Delivery"
-    const filteredOrders = orders.filter(order => {
-      return order.orderStatus.length > 0 && order.orderStatus[0].orderLevel === "Out for Delivery";
-    });
-
-    const orderCount = filteredOrders.length;
-
-    res.status(200).json({
-      success: true,
-      orderCount: orderCount,
-      orders: filteredOrders,
-    });
+    return latestOrderStatusMap;
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      error: error.message,
-    });
+    console.error("Error fetching latest order statuses:", error);
+    throw error;
   }
 };
-
