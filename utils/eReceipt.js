@@ -169,9 +169,8 @@ module.exports = async (email, subject, order) => {
                 <tr class="heading">
                     <td>Payment Method</td>
                 </tr>
-    
+              ${order.orderStatus.map(status => `
                 <tr class="details">
-                    ${order.orderStatus.map(status => `
                         <td>  
                             <li>${status.orderLevel} - ${new Date(status.datedAt).toLocaleString()}</li>
                             ${status.staff ? `
@@ -181,9 +180,8 @@ module.exports = async (email, subject, order) => {
                                 </ul>
                             ` : ''}
                         </td>
-                    `).join('')}
                 </tr>
-    
+     `).join('')}
                 <tr class="heading">
                     <td>Item</td>
                     <td>Quantity</td>
