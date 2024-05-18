@@ -903,7 +903,7 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
           staff: req.user.id,
         },
       },
-    });
+    }).populate("customer", "fname lname email"); 
 
     const latestOrderStatus = orders.map((order) => {
       const orderStatusArray = order.orderStatus;
