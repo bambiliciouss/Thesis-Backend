@@ -8,5 +8,5 @@ const {
 } = require("../controllers/riderLocationController");
 
 router.post("/create/location", isAuthenticatedUser, createRiderLocation);
-router.get("/rider/location", isAuthenticatedUser, getRiderLocation);
+router.get("/rider/location/:id", isAuthenticatedUser, getRiderLocation);
 module.exports = router;
