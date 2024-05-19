@@ -56,3 +56,22 @@ exports.createRiderLocation = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
+exports.getRiderLocation = async (req, res, next) => {
+  try {
+    const riderloc = await RiderLocation.findOne({ user: req.params.id });
+
+    if (!riderloc) {
+      return next(new ErrorHandler("No Rider found with this ID", 401));
+    }
+
+    res.status(200).json({
+      success: true,
+      riderloc,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
