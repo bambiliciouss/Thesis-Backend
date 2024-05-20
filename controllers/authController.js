@@ -1651,8 +1651,7 @@ exports.BranchUsers = async (req, res, next) => {
     // Get all the orders from the admin's branches only
     const orders = await Order.find({
       "selectedStore.store": req.params.id,
-    })
-      .populate("customer", "fname lname avatar addresses role");
+    }).populate("customer", "fname lname avatar addresses role");
 
     // Extract unique user IDs from orders
     const userIds = [...new Set(orders.map((order) => order.customer._id))];
@@ -1671,5 +1670,55 @@ exports.BranchUsers = async (req, res, next) => {
     res
       .status(500)
       .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+exports.getQRdetails = async (req, res, next) => {
+  try {
+    // Find the user
+    const user = await User.findOne({
+      _id: req.params.id,
+      deleted: false,
+      role: "user",
+    });
+
+    // If user is not found, return 404
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Find orders related to the user and sort them by createdAt in descending order
+    const latestOrder = await Order.findOne({
+      customer: user._id, // Assuming customer field in Order model stores user ID
+    })
+      .sort({ createdAt: -1 })
+      .exec(); // Sort by createdAt in descending order and execute the query
+
+    // If no orders found, return appropriate response
+    if (!latestOrder) {
+      return res.status(404).json({
+        success: false,
+        message: "No orders found for this user",
+      });
+    }
+
+    const latestOrderStatus = latestOrder.orderStatus; // Get the order status array from latestOrder
+    const latestOrderStatusLevel = latestOrderStatus[latestOrderStatus.length - 1].orderLevel; // Get the orderLevel of the latest status
+    res.status(200).json({
+      success: true,
+      latestOrderStatusLevel,
+      user,
+      latestOrder,
+    });
+  } catch (error) {
+    // Catch and respond with any errors
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 };

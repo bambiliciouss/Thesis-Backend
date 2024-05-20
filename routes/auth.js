@@ -36,7 +36,8 @@ const {
   SingleBranchUsers,
   updateProfileMobile,
   addAddressMobile,
-  BranchUsers
+  BranchUsers,
+  getQRdetails
 } = require("../controllers/authController");
 
 
@@ -229,7 +230,7 @@ router.put(
 );
 
 router.get("/user/qr/:id", GetUserDetails);
-
+router.get("/user/qrstatus/:id", getQRdetails);
 router.put(
   "/me/update/mobile/:id",
   upload.single("avatar"),
