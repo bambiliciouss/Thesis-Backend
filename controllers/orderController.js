@@ -903,7 +903,7 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
           staff: req.user.id,
         },
       },
-    }).populate("customer", "fname lname email"); 
+    }).populate("customer", "fname lname email");
 
     const latestOrderStatus = orders.map((order) => {
       const orderStatusArray = order.orderStatus;
@@ -915,7 +915,10 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
     const orderCount = orders.length;
 
     const orderDetails = orders.filter((order, index) => {
-      return latestOrderStatus[index] === "Out for Delivery";
+      return (
+        latestOrderStatus[index] === "Out for Delivery" ||
+        latestOrderStatus[index] === "Container for pick up"
+      );
     });
 
     const orderDetailsCount = orderDetails.length;
