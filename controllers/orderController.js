@@ -916,8 +916,9 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
 
     const orderDetails = orders.filter((order, index) => {
       return (
-        latestOrderStatus[index] === "Out for Delivery" ||
-        latestOrderStatus[index] === "Container for pick up"
+        latestOrderStatus[index] === "Out for Delivery" 
+        // ||
+        // latestOrderStatus[index] === "Container for pick up"
       );
     });
 
