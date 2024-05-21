@@ -59,7 +59,9 @@ exports.createRiderLocation = async (req, res) => {
 
 exports.getRiderLocation = async (req, res, next) => {
   try {
-    const riderloc = await RiderLocation.findOne({ user: req.params.id });
+    const riderloc = await RiderLocation.findOne({
+      user: req.params.id,
+    }).populate("user", "fname lname");
 
     if (!riderloc) {
       return next(new ErrorHandler("No Rider found with this ID", 401));
