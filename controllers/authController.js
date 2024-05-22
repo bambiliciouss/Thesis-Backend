@@ -734,6 +734,7 @@ exports.registerRider = async (req, res, next) => {
       },
       role,
       storebranch,
+      verified:true
     });
 
     const token = await new Token({
