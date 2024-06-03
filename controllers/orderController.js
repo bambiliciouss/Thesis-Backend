@@ -107,11 +107,11 @@ exports.newOrder = async (req, res, next) => {
     }
   }
 
-  // const paymongoToken = await new PaymongoToken({
-  //   orderId: order._id,
-  //   token: crypto.randomBytes(32).toString("hex"),
-  //   verificationTokenExpire: new Date(Date.now() + 2 * 60 * 1000),
-  // }).save();
+  const paymongoToken = await new PaymongoToken({
+    orderId: order._id,
+    token: crypto.randomBytes(32).toString("hex"),
+    verificationTokenExpire: new Date(Date.now() + 2 * 60 * 1000),
+  }).save();
 
   // if (req.body.paymentInfo === "GCash") {
   //   const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
@@ -129,7 +129,7 @@ exports.newOrder = async (req, res, next) => {
   // }
 
   console.log(order);
-
+  console.log(paymongoToken);
   res.status(200).json({
     success: true,
     order,
@@ -137,40 +137,38 @@ exports.newOrder = async (req, res, next) => {
   });
 };
 
-
 exports.gcashPayment = async (req, res, next) => {
   try {
-      const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id);
 
-      if (!order) {
-          return res.status(400).send("Invalid Link");
-      }
+    if (!order) {
+      return res.status(400).send("Invalid Link");
+    }
 
-      const user = await User.findOne({ _id: order.customer });
+    const user = await User.findOne({ _id: order.customer });
 
-      let paymongoToken = await PaymongoToken.findOne({ orderId: order._id });
+    let paymongoToken = await PaymongoToken.findOne({ orderId: order._id });
 
-      if (paymongoToken) {
-          paymongoToken.token = req.params.token;
-          await paymongoToken.save();
-      } else {
-          paymongoToken = new PaymongoToken({
-              orderId: order._id,
-              token: req.params.token,
-          });
-          await paymongoToken.save();
-      }
+    if (paymongoToken) {
+      paymongoToken.token = req.params.token;
+      await paymongoToken.save();
+    } else {
+      paymongoToken = new PaymongoToken({
+        orderId: order._id,
+        token: req.params.token,
+      });
+      await paymongoToken.save();
+    }
 
-      await order.save();
+    await order.save();
 
-      res.status(200).json({ message: "Payment completed successfully" });
+    res.status(200).json({ message: "Payment completed successfully" });
   } catch (error) {
-      // Handle any other errors that may occur during the process
-      console.error(error);
-      res.status(500).send("Internal Server Error");
+    // Handle any other errors that may occur during the process
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
-}
-
+};
 
 exports.myOrders = async (req, res, next) => {
   const orders = await Order.find({ customer: req.user._id });
@@ -1029,5 +1027,3 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
     });
   }
 };
-
-
