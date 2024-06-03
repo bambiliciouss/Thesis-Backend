@@ -8,7 +8,7 @@ const Product = require("../models/product");
 const StoreBarangay = require("../models/storebarangay");
 const eReceipt = require("../utils/eReceipt");
 const PaymongoToken = require("../models/paymongoToken");
-
+const crypto = require("crypto");
 const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
   try {
     const lineItems = orderItemsDetails.map((orderItem) => ({
@@ -112,21 +112,6 @@ exports.newOrder = async (req, res, next) => {
     token: crypto.randomBytes(32).toString("hex"),
     verificationTokenExpire: new Date(Date.now() + 2 * 60 * 1000),
   }).save();
-
-  // if (req.body.paymentInfo === "GCash") {
-  //   const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
-  //   console.log();
-
-  //   const checkoutUrl = await handlePayMongo(
-  //     //order.orderProducts,
-  //     order.orderItems,
-  //     temporaryLink
-  //   );
-
-  //   console.log(checkoutUrl, "checkout");
-
-  //   return res.json({ checkoutUrl });
-  // }
 
   console.log(order);
   console.log(paymongoToken);
