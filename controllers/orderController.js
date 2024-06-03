@@ -14,7 +14,7 @@ const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
   try {
     const lineItems = orderItemsDetails.map((orderItem) => ({
       currency: "PHP",
-      amount: orderItem.price * orderItem.quantity * 100, // Assuming price is stored in orderItem
+      amount: orderItem.price * orderItem.quantity, // Assuming price is stored in orderItem
       description: orderItem.type,
       name: orderItem.type,
       quantity: orderItem.quantity,
@@ -115,15 +115,15 @@ exports.newOrder = async (req, res, next) => {
 
   if (req.body.paymentInfo === "GCash") {
     const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
-    console.log();
+    //console.log();
 
     const checkoutUrl = await handlePayMongo(
       req.body.orderItems,
       temporaryLink
     );
 
-    console.log(checkoutUrl, "checkout");
-
+    //console.log(checkoutUrl, "checkout");
+    console.log("success ba?");
     return res.json({ checkoutUrl });
   }
 
