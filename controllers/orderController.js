@@ -106,27 +106,25 @@ exports.newOrder = async (req, res, next) => {
       await productss.save();
     }
   }
+  const paymongoToken = await new PaymongoToken({
+    orderId: order._id,
+    token: crypto.randomBytes(32).toString("hex"),
+    verificationTokenExpire: new Date(Date.now() + 2 * 60 * 1000),
+  }).save();
 
   if (req.body.paymentInfo === "GCash") {
-    const paymongoToken = await new PaymongoToken({
-      orderId: order._id,
-      token: crypto.randomBytes(32).toString("hex"),
-      verificationTokenExpire: new Date(Date.now() + 2 * 60 * 1000),
-    }).save();
-
-    const temporaryLink = `${process.env.FRONTEND_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
+    const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
     console.log();
 
     const checkoutUrl = await handlePayMongo(orderItemsDetails, temporaryLink);
 
     console.log(checkoutUrl, "checkout");
-    console.log(paymongoToken);
 
     return res.json({ checkoutUrl });
   }
 
   console.log(order);
-
+  console.log(paymongoToken);
   res.status(200).json({
     success: true,
     order,
