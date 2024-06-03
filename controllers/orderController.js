@@ -114,7 +114,7 @@ exports.newOrder = async (req, res, next) => {
   }).save();
 
   if (req.body.paymentInfo === "GCash") {
-    const temporaryLink = `${process.env.FRONTEND_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
+    const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
     console.log();
 
     const checkoutUrl = await handlePayMongo(
