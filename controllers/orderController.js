@@ -107,7 +107,7 @@ exports.newOrder = async (req, res, next) => {
     }
   }
 
-  if (req.body.paymentMethod === "GCash") {
+  if (req.body.paymentInfo === "GCash") {
     const paymongoToken = await new PaymongoToken({
       orderId: order._id,
       token: crypto.randomBytes(32).toString("hex"),
