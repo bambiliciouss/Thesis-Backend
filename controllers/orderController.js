@@ -120,12 +120,13 @@ exports.newOrder = async (req, res, next) => {
     const checkoutUrl = await handlePayMongo(orderItemsDetails, temporaryLink);
 
     console.log(checkoutUrl, "checkout");
+    console.log(paymongoToken);
 
     return res.json({ checkoutUrl });
   }
 
   console.log(order);
-  console.log(paymongoToken);
+
   res.status(200).json({
     success: true,
     order,
