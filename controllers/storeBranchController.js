@@ -472,10 +472,7 @@ exports.getSalesByBranch = async (req, res) => {
         "November",
         "December",
       ];
-      // salesByBranch.forEach((transaction) => {
-      //   transaction._id = monthNames[parseInt(transaction._id) - 1];
-      // });
-      totalSales.forEach((transaction) => {
+      salesByBranch.forEach((transaction) => {
         transaction._id = monthNames[parseInt(transaction._id) - 1];
       });
     }
@@ -484,7 +481,7 @@ exports.getSalesByBranch = async (req, res) => {
         $match: {
           deleted: false,
           createdAt: { $gte: startDate, $lt: endDate },
-          storebranch: {$in: branchIds},
+          storebranch: { $in: branchIds },
         },
       },
       {
@@ -568,8 +565,7 @@ exports.getSalesByBranch = async (req, res) => {
 
     // Sort the groups by date and time
     totalSales.sort((a, b) => new Date(a._id) - new Date(b._id));
-     // Filter out empty sales data for the months
-    
+    // Filter out empty sales data for the months
 
     res.status(200).json({
       totalSales,
@@ -796,7 +792,6 @@ exports.getTotalSalesCurrentBranch = async (req, res) => {
         $dateToString: {
           format: "%Y-%m-%d %H:00",
           date: "$createdAt",
-          
         },
       };
     } else if (filter === "week") {
@@ -804,7 +799,6 @@ exports.getTotalSalesCurrentBranch = async (req, res) => {
         $dateToString: {
           format: "%Y-%m-%d",
           date: "$createdAt",
-          
         },
       };
     } else if (filter === "month") {
@@ -812,7 +806,6 @@ exports.getTotalSalesCurrentBranch = async (req, res) => {
         $dateToString: {
           format: "%m",
           date: "$createdAt",
-          
         },
       };
     } else if (filter === "year") {
