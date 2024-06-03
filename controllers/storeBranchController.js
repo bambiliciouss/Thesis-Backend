@@ -472,7 +472,10 @@ exports.getSalesByBranch = async (req, res) => {
         "November",
         "December",
       ];
-      salesByBranch.forEach((transaction) => {
+      // salesByBranch.forEach((transaction) => {
+      //   transaction._id = monthNames[parseInt(transaction._id) - 1];
+      // });
+      totalSales.forEach((transaction) => {
         transaction._id = monthNames[parseInt(transaction._id) - 1];
       });
     }
@@ -566,10 +569,10 @@ exports.getSalesByBranch = async (req, res) => {
     // Sort the groups by date and time
     totalSales.sort((a, b) => new Date(a._id) - new Date(b._id));
      // Filter out empty sales data for the months
-     const filteredTotalSales = totalSales.filter((item) => item.totalSales > 0);
+    
 
     res.status(200).json({
-      totalSales:filteredTotalSales,
+      totalSales,
       startDate: startDate.toLocaleDateString(),
       endDate: endDate.toLocaleDateString(),
     });
