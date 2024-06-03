@@ -7,6 +7,59 @@ const mongoose = require("mongoose");
 const Product = require("../models/product");
 const StoreBarangay = require("../models/storebarangay");
 const eReceipt = require("../utils/eReceipt");
+const PaymongoToken = require("../models/paymongoToken");
+
+const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
+  try {
+    const lineItems = orderItemsDetails.map((orderItem) => ({
+      currency: "PHP",
+      amount: orderItem.price * orderItem.quantity * 100, // Assuming price is stored in orderItem
+      description: orderItem.type,
+      name: orderItem.type,
+      quantity: orderItem.quantity,
+    }));
+
+    console.log(lineItems, "line");
+
+    const options = {
+      method: "POST",
+      url: "https://api.paymongo.com/v1/checkout_sessions",
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+
+        authorization:
+          "Basic c2tfdGVzdF9BN1VUSHNDVXE2NDRMc3h5YXUzM1VWZ0Q6cGtfdGVzdF9rR1V6VEZnR1BZSEt1cEVlMTdEMm93ZUE=",
+      },
+      data: {
+        data: {
+          attributes: {
+            send_email_receipt: true,
+            show_description: true,
+            show_line_items: true,
+            line_items: lineItems,
+            payment_method_types: ["gcash"], // Specify the payment method types you accept
+            description: "Order payment", // Description for the payment
+            success_url: `${temporaryLink}`, // Redirect URL after successful payment
+          },
+        },
+      },
+    };
+
+    console.log(options, "options");
+
+    const response = await axios.request(options);
+
+    console.log(response, "rees");
+    const checkoutUrl = response.data.data.attributes.checkout_url;
+
+    return checkoutUrl; // Return the checkout URL
+  } catch (error) {
+    // console.error("Error creating PayMongo checkout session:", error);
+    // throw error;
+  }
+};
+
 exports.newOrder = async (req, res, next) => {
   // console.log("order",req.body);
   const {
@@ -53,33 +106,71 @@ exports.newOrder = async (req, res, next) => {
       await productss.save();
     }
   }
-  // if (orderProducts && orderProducts.length > 0) {
-  //   for (const orderProduct of orderProducts) {
-  //     const { productId, quantity } = orderProduct;
 
-  //     const product = await Product.findById(productId);
-  //     if (!product) {
-  //       return res.status(404).json({ error: "Product not found" });
-  //     }
+  const paymongoToken = await new PaymongoToken({
+    orderId: order._id,
+    token: crypto.randomBytes(32).toString("hex"),
+    verificationTokenExpire: new Date(Date.now() + 2 * 60 * 1000),
+  }).save();
 
-  //     // Update the stock of the product
-  //     product.stocks.push({
-  //       quantity: -quantity, // subtracting quantity from stock
-  //       datedAt: new Date(),
-  //     });
+  if (req.body.paymentInfo === "GCash") {
+    const temporaryLink = `${process.env.FRONTEND_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
+    console.log();
 
-  //     await product.save();
-  //   }
-  // }
+    const checkoutUrl = await handlePayMongo(
+      //order.orderProducts,
+      order.orderItems,
+      temporaryLink
+    );
+
+    console.log(checkoutUrl, "checkout");
+
+    return res.json({ checkoutUrl });
+  }
+
+  console.log(order);
 
   res.status(200).json({
     success: true,
     order,
     message: "Order Success",
   });
-
-  console.log(order);
 };
+
+
+exports.gcashPayment = async (req, res, next) => {
+  try {
+      const order = await Order.findById(req.params.id);
+
+      if (!order) {
+          return res.status(400).send("Invalid Link");
+      }
+
+      const user = await User.findOne({ _id: order.customer });
+
+      let paymongoToken = await PaymongoToken.findOne({ orderId: order._id });
+
+      if (paymongoToken) {
+          paymongoToken.token = req.params.token;
+          await paymongoToken.save();
+      } else {
+          paymongoToken = new PaymongoToken({
+              orderId: order._id,
+              token: req.params.token,
+          });
+          await paymongoToken.save();
+      }
+
+      await order.save();
+
+      res.status(200).json({ message: "Payment completed successfully" });
+  } catch (error) {
+      // Handle any other errors that may occur during the process
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+  }
+}
+
 
 exports.myOrders = async (req, res, next) => {
   const orders = await Order.find({ customer: req.user._id });
@@ -916,7 +1007,7 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
 
     const orderDetails = orders.filter((order, index) => {
       return (
-        latestOrderStatus[index] === "Out for Delivery" 
+        latestOrderStatus[index] === "Out for Delivery"
         // ||
         // latestOrderStatus[index] === "Container for pick up"
       );
@@ -938,3 +1029,6 @@ exports.allOrdersRiderOutforDelivery = async (req, res, next) => {
     });
   }
 };
+
+// exports.newOrder = async (req, res, next) => {
+// };

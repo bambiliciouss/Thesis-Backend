@@ -17,6 +17,7 @@ const {
   getAcceptedAndDeliveredOrders,
   allOrdersRiderOutforDelivery,
   getEreceipt,
+  gcashPayment
 } = require("../controllers/orderController");
 
 const { isAuthenticatedUser, authorizeRoles } = require("../middlewares/auth");
@@ -25,6 +26,7 @@ const eReceipt = require("../utils/eReceipt");
 router.route("/order/new").post(isAuthenticatedUser, newOrder);
 router.route("/orders/me").get(isAuthenticatedUser, myOrders);
 router.route("/order/:id").post(isAuthenticatedUser, addOrderStatus);
+router.route('/paymongo-gcash/:token/:id').get(gcashPayment);
 router
   .route("/order/assign/rider/:id")
   .post(isAuthenticatedUser, addOrderStatuswithRider);
