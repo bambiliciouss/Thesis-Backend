@@ -9,6 +9,7 @@ const StoreBarangay = require("../models/storebarangay");
 const eReceipt = require("../utils/eReceipt");
 const PaymongoToken = require("../models/paymongoToken");
 const crypto = require("crypto");
+
 const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
   try {
     const lineItems = orderItemsDetails.map((orderItem) => ({
@@ -116,7 +117,10 @@ exports.newOrder = async (req, res, next) => {
     const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
     console.log();
 
-    const checkoutUrl = await handlePayMongo(orderItemsDetails, temporaryLink);
+    const checkoutUrl = await handlePayMongo(
+      req.body.orderItems,
+      temporaryLink
+    );
 
     console.log(checkoutUrl, "checkout");
 
