@@ -11,6 +11,53 @@ const PaymongoToken = require("../models/paymongoToken");
 const crypto = require("crypto");
 const axios = require("axios");
 
+const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
+  try {
+    const lineItems = orderItemsDetails.map((orderItem) => ({
+      currency: "PHP",
+      amount: orderItem.price * orderItem.quantity * 100, // Assuming price is stored in orderItem
+      name: orderItem.type,
+      quantity: orderItem.quantity,
+      //{currency: 'PHP', amount: 100, name: 'items', quantity: 1000}
+    }));
+
+    console.log(lineItems, "line");
+
+    const options = {
+      method: 'POST',
+      url: 'https://api.paymongo.com/v1/checkout_sessions',
+      headers: {
+        accept: 'application/json',
+        'Content-Type': 'application/json',
+        authorization: 'Basic c2tfdGVzdF9BN1VUSHNDVXE2NDRMc3h5YXUzM1VWZ0Q6cGtfdGVzdF9rR1V6VEZnR1BZSEt1cEVlMTdEMm93ZUE='
+      },
+      data: {
+        data: {
+          attributes: {
+            send_email_receipt: true,
+            show_description: true,
+            show_line_items: true,
+            line_items: lineItems,
+            payment_method_types: ['gcash'],
+            description: 'Order payment'
+          }
+        }
+      }
+    };
+
+    console.log(options, "options");
+
+    const response = await axios.request(options);
+    console.log(response, "rees");
+    const checkoutUrl = response.data.data.attributes.checkout_url;
+
+    return checkoutUrl; // Return the checkout URL
+  } catch (error) {
+    // console.error("Error creating PayMongo checkout session:", error);
+    // throw error;
+  }
+};
+
 // const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
 //   try {
 //     const lineItems = orderItemsDetails.map((orderItem) => ({
@@ -21,7 +68,7 @@ const axios = require("axios");
 //       quantity: orderItem.quantity,
 //     }));
 
-//     console.log(lineItems, "line");
+//     console.log(lineItems, "lineItems");
 
 //     const options = {
 //       method: "POST",
@@ -29,7 +76,6 @@ const axios = require("axios");
 //       headers: {
 //         accept: "application/json",
 //         "Content-Type": "application/json",
-
 //         authorization:
 //           "Basic c2tfdGVzdF9BN1VUSHNDVXE2NDRMc3h5YXUzM1VWZ0Q6cGtfdGVzdF9rR1V6VEZnR1BZSEt1cEVlMTdEMm93ZUE=",
 //       },
@@ -42,7 +88,7 @@ const axios = require("axios");
 //             line_items: lineItems,
 //             payment_method_types: ["gcash"], // Specify the payment method types you accept
 //             description: "Order payment", // Description for the payment
-//             success_url: `${temporaryLink}`, // Redirect URL after successful payment
+//             success_url: `${temporaryLink}` // Redirect URL after successful payment
 //           },
 //         },
 //       },
@@ -52,139 +98,27 @@ const axios = require("axios");
 
 //     const response = await axios.request(options);
 
-//     console.log(response, "rees");
-//     const checkoutUrl = response.data.data.attributes.checkout_url;
-
-//     return checkoutUrl; // Return the checkout URL
-//   } catch (error) {
-//     // console.error("Error creating PayMongo checkout session:", error);
-//     // throw error;
-//   }
-// };
-
-// const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
-//   try {
-//     const lineItems = orderItemsDetails.map((orderItem) => ({
-//       currency: "PHP",
-//       amount: orderItem.price * orderItem.quantity,
-//       description: orderItem.type,
-//       name: orderItem.type,
-//       quantity: orderItem.quantity,
-//     }));
-
-//     console.log(lineItems, "line");
-
-//     const options = {
-//       method: "POST",
-//       url: "https://api.paymongo.com/v1/checkout_sessions",
-//       headers: {
-//         accept: "application/json",
-//         "Content-Type": "application/json",
-//         authorization:
-//           "Basic c2tfdGVzdF9BN1VUSHNDVXE2NDRMc3h5YXUzM1VWZ0Q6cGtfdGVzdF9rR1V6VEZnR1BZSEt1cEVlMTdEMm93ZUE=",
-//       },
-//       data: {
-//         data: {
-//           attributes: {
-//             send_email_receipt: true,
-//             show_description: true,
-//             show_line_items: true,
-//             line_items: lineItems,
-//             payment_method_types: ["gcash"],
-//             description: "Order payment",
-//             success_url: `${temporaryLink}`,
-//           },
-//         },
-//       },
-//     };
-
-//     console.log(options, "options");
-
-//     const response = await axios.request(options);
-
-//     console.log(response, "response");
+//     console.log(response.data, "response data");
 
 //     if (
 //       response &&
 //       response.data &&
 //       response.data.data &&
-//       response.data.data.attributes
+//       response.data.data.attributes &&
+//       response.data.data.attributes.checkout_url
 //     ) {
 //       const checkoutUrl = response.data.data.attributes.checkout_url;
+//       console.log(checkoutUrl, "checkoutUrl");
 //       return checkoutUrl; // Return the checkout URL
 //     } else {
-//       throw new Error("Unexpected response structure");
+//       console.error("Invalid response format", response.data);
+//       throw new Error("Invalid response format");
 //     }
 //   } catch (error) {
-//     console.error(
-//       "Error creating PayMongo checkout session:",
-//       error.response ? error.response.data : error.message
-//     );
-//     throw error;
+//     console.error("Error creating PayMongo checkout session:", error);
+//     throw error; // Ensure errors are thrown to be caught by the caller
 //   }
 // };
-
-const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
-  try {
-    const lineItems = orderItemsDetails.map((orderItem) => ({
-      currency: "PHP",
-      amount: orderItem.price * orderItem.quantity, // Assuming price is stored in orderItem
-      description: orderItem.type,
-      name: orderItem.type,
-      quantity: orderItem.quantity,
-    }));
-
-    console.log(lineItems, "lineItems");
-
-    const options = {
-      method: "POST",
-      url: "https://api.paymongo.com/v1/checkout_sessions",
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        authorization:
-          "Basic c2tfdGVzdF9BN1VUSHNDVXE2NDRMc3h5YXUzM1VWZ0Q6cGtfdGVzdF9rR1V6VEZnR1BZSEt1cEVlMTdEMm93ZUE=",
-      },
-      data: {
-        data: {
-          attributes: {
-            send_email_receipt: true,
-            show_description: true,
-            show_line_items: true,
-            line_items: lineItems,
-            payment_method_types: ["gcash"], // Specify the payment method types you accept
-            description: "Order payment", // Description for the payment
-            success_url: temporaryLink, // Redirect URL after successful payment
-          },
-        },
-      },
-    };
-
-    console.log(options, "options");
-
-    const response = await axios.request(options);
-
-    console.log(response.data, "response data");
-
-    if (
-      response &&
-      response.data &&
-      response.data.data &&
-      response.data.data.attributes &&
-      response.data.data.attributes.checkout_url
-    ) {
-      const checkoutUrl = response.data.data.attributes.checkout_url;
-      console.log(checkoutUrl, "checkoutUrl");
-      return checkoutUrl; // Return the checkout URL
-    } else {
-      console.error("Invalid response format", response.data);
-      throw new Error("Invalid response format");
-    }
-  } catch (error) {
-    console.error("Error creating PayMongo checkout session:", error);
-    throw error; // Ensure errors are thrown to be caught by the caller
-  }
-};
 
 exports.newOrder = async (req, res, next) => {
   // console.log("order",req.body);
@@ -242,10 +176,7 @@ exports.newOrder = async (req, res, next) => {
   //   const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
   //   //console.log(temporaryLink);
 
-  //   const checkoutUrl = await handlePayMongo(
-  //     order,
-  //     temporaryLink
-  //   );
+  //   const checkoutUrl = await handlePayMongo(order.orderItems, temporaryLink);
 
   //   console.log(checkoutUrl, "checkout");
   //   console.log("success ba?");
