@@ -180,11 +180,11 @@ exports.newOrder = async (req, res, next) => {
     //console.log();
 
     const checkoutUrl = await handlePayMongo(
-      req.body.orderItems,
+      orderItemsDetails,
       temporaryLink
     );
 
-    //console.log(checkoutUrl, "checkout");
+    console.log(checkoutUrl, "checkout");
     console.log("success ba?");
     return res.json({ checkoutUrl });
   }
