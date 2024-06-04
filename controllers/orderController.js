@@ -39,7 +39,8 @@ const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
             show_line_items: true,
             line_items: lineItems,
             payment_method_types: ['gcash'],
-            description: 'Order payment'
+            description: 'Order payment',
+            success_url: `${temporaryLink}`,
           }
         }
       }
