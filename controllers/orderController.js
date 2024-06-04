@@ -175,19 +175,19 @@ exports.newOrder = async (req, res, next) => {
     verificationTokenExpire: new Date(Date.now() + 2 * 60 * 1000),
   }).save();
 
-  // if (req.body.paymentInfo === "GCash") {
-  //   const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
-  //   //console.log();
+  if (req.body.paymentInfo === "GCash") {
+    const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
+    //console.log();
 
-  //   const checkoutUrl = await handlePayMongo(
-  //     req.body.orderItems,
-  //     temporaryLink
-  //   );
+    const checkoutUrl = await handlePayMongo(
+      req.body.orderItems,
+      temporaryLink
+    );
 
-  //   //console.log(checkoutUrl, "checkout");
-  //   console.log("success ba?");
-  //   return res.json({ checkoutUrl });
-  // }
+    //console.log(checkoutUrl, "checkout");
+    console.log("success ba?");
+    return res.json({ checkoutUrl });
+  }
 
   console.log(order);
   console.log(paymongoToken);
