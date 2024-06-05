@@ -35,7 +35,7 @@ const handlePayMongo = async (
       lineItems.push({
         currency: "PHP",
         amount: detail.price * detail.quantity * 100, // Assuming price is stored in detail
-        name: detail.type.typeofGallon,
+        name: detail.type,
         quantity: detail.quantity,
       });
     });
@@ -209,9 +209,11 @@ exports.newOrder = async (req, res, next) => {
     console.log(temporaryLink, "temporaryLink");
 
     try {
+
+      const orderWithPopulatedProducts = await OrderModel.findById(order._id).populate('orderProducts.type', 'typeofGallon');
       const checkoutUrl = await handlePayMongo(
         order.orderItems,
-        order.orderProducts,
+        orderWithPopulatedProducts,
         temporaryLink
       );
       console.log(checkoutUrl, "checkout");
