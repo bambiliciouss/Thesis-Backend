@@ -210,7 +210,10 @@ exports.newOrder = async (req, res, next) => {
 
     try {
 
-      const orderWithPopulatedProducts = await OrderModel.findById(order._id).populate('orderProducts.type', 'typeofGallon');
+      const orderWithPopulatedProducts = await Order.findById(order._id).populate({
+        path: 'orderProducts.type',
+        select: 'typeofGallon'
+      });
       const checkoutUrl = await handlePayMongo(
         order.orderItems,
         orderWithPopulatedProducts,
