@@ -35,10 +35,9 @@ const handlePayMongo = async (
       lineItems.push({
         currency: "PHP",
         amount: detail.price * detail.quantity * 100, // Assuming price is stored in detail
-        name: detail.type.typeofGallon,
+        name: detail.type,
         quantity: detail.quantity,
       });
-   
     });
 
     console.log(lineItems, "line");
