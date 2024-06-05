@@ -11,25 +11,45 @@ const PaymongoToken = require("../models/paymongoToken");
 const crypto = require("crypto");
 const axios = require("axios");
 
-const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
+const handlePayMongo = async (
+  orderItemsDetails,
+  orderProductsDetails,
+  temporaryLink
+) => {
   try {
-    const lineItems = orderItemsDetails.map((orderItem) => ({
-      currency: "PHP",
-      amount: orderItem.price * orderItem.quantity * 100, // Assuming price is stored in orderItem
-      name: orderItem.type,
-      quantity: orderItem.quantity,
-      //{currency: 'PHP', amount: 100, name: 'items', quantity: 1000}
-    }));
+    // const lineItems = orderItemsDetails.map((orderItem) => ({
+    //   currency: "PHP",
+    //   amount: orderItem.price * orderItem.quantity * 100, // Assuming price is stored in orderItem
+    //   name: orderItem.type,
+    //   quantity: orderItem.quantity,
+    //   //{currency: 'PHP', amount: 100, name: 'items', quantity: 1000}
+    // }));
+
+    const lineItems = [];
+
+    // Combining orderItemsDetails and orderProductsDetails into one array
+    const allDetails = orderItemsDetails.concat(orderProductsDetails);
+
+    // Mapping over allDetails
+    allDetails.forEach((detail) => {
+      lineItems.push({
+        currency: "PHP",
+        amount: detail.price * detail.quantity * 100, // Assuming price is stored in detail
+        name: detail.type,
+        quantity: detail.quantity,
+      });
+    });
 
     console.log(lineItems, "line");
 
     const options = {
-      method: 'POST',
-      url: 'https://api.paymongo.com/v1/checkout_sessions',
+      method: "POST",
+      url: "https://api.paymongo.com/v1/checkout_sessions",
       headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-        authorization: 'Basic c2tfdGVzdF9BN1VUSHNDVXE2NDRMc3h5YXUzM1VWZ0Q6cGtfdGVzdF9rR1V6VEZnR1BZSEt1cEVlMTdEMm93ZUE='
+        accept: "application/json",
+        "Content-Type": "application/json",
+        authorization:
+          "Basic c2tfdGVzdF9BN1VUSHNDVXE2NDRMc3h5YXUzM1VWZ0Q6cGtfdGVzdF9rR1V6VEZnR1BZSEt1cEVlMTdEMm93ZUE=",
       },
       data: {
         data: {
@@ -38,12 +58,12 @@ const handlePayMongo = async (orderItemsDetails, temporaryLink) => {
             show_description: true,
             show_line_items: true,
             line_items: lineItems,
-            payment_method_types: ['gcash'],
-            description: 'Order payment',
+            payment_method_types: ["gcash"],
+            description: "Order payment",
             success_url: `${temporaryLink}`,
-          }
-        }
-      }
+          },
+        },
+      },
     };
 
     console.log(options, "options");
@@ -189,7 +209,11 @@ exports.newOrder = async (req, res, next) => {
     console.log(temporaryLink, "temporaryLink");
 
     try {
-      const checkoutUrl = await handlePayMongo(order.orderItems, temporaryLink);
+      const checkoutUrl = await handlePayMongo(
+        order.orderItems,
+        order.orderProducts,
+        temporaryLink
+      );
       console.log(checkoutUrl, "checkout");
       return res.json({ checkoutUrl });
     } catch (error) {
