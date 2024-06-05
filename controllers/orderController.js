@@ -32,10 +32,16 @@ const handlePayMongo = async (
 
     // Mapping over allDetails
     allDetails.forEach((detail) => {
+      // lineItems.push({
+      //   currency: "PHP",
+      //   amount: detail.price * detail.quantity * 100, // Assuming price is stored in detail
+      //   name: detail.type,
+      //   quantity: detail.quantity,
+      // });
       lineItems.push({
         currency: "PHP",
-        amount: detail.price * detail.quantity * 100, // Assuming price is stored in detail
-        name: detail.type,
+        amount: detail.price * detail.quantity * 100,
+        name: detail.type || (detail.type && detail.type.typeofGallon),
         quantity: detail.quantity,
       });
     });
