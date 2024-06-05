@@ -14,7 +14,8 @@ const axios = require("axios");
 const handlePayMongo = async (
   orderItemsDetails,
   orderProductsDetails,
-  temporaryLink
+  temporaryLink,
+  deliveryfee
 ) => {
   try {
     // const lineItems = orderItemsDetails.map((orderItem) => ({
@@ -34,7 +35,7 @@ const handlePayMongo = async (
     allDetails.forEach((detail) => {
       lineItems.push({
         currency: "PHP",
-        amount: detail.price * detail.quantity * 100, // Assuming price is stored in detail
+        amount: ((detail.price * detail.quantity) + deliveryfee )* 100, // Assuming price is stored in detail
         name: detail.type,
         quantity: detail.quantity,
       });
@@ -233,7 +234,8 @@ exports.newOrder = async (req, res, next) => {
       const checkoutUrl = await handlePayMongo(
         order.orderItems,
         modifiedOrderProducts,
-        temporaryLink
+        temporaryLink,
+        order.selectedStore.deliveryFee
       );
       console.log(checkoutUrl, "checkout");
       return res.json({ checkoutUrl });
