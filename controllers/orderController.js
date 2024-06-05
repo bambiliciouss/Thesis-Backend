@@ -31,15 +31,30 @@ const handlePayMongo = async (
     // Combining orderItemsDetails and orderProductsDetails into one array
     const allDetails = orderItemsDetails.concat(orderProductsDetails);
 
-    // Mapping over allDetails
+    // // Mapping over allDetails
+    // allDetails.forEach((detail) => {
+    //   lineItems.push({
+    //     currency: "PHP",
+    //     amount: ((detail.price * detail.quantity) + deliveryfee )* 100, // Assuming price is stored in detail
+    //     name: detail.type,
+    //     quantity: detail.quantity,
+    //   });
+    // });
+
+    let totalAmount = 0;
     allDetails.forEach((detail) => {
+      const itemAmount = detail.price * detail.quantity;
+      totalAmount += itemAmount;
       lineItems.push({
         currency: "PHP",
-        amount: ((detail.price * detail.quantity) + deliveryfee )* 100, // Assuming price is stored in detail
+        amount: itemAmount * 100, // Convert to cents
         name: detail.type,
         quantity: detail.quantity,
       });
     });
+
+    // Add the delivery fee to the total amount
+    totalAmount += deliveryfee;
 
     console.log(lineItems, "line");
 
@@ -62,6 +77,7 @@ const handlePayMongo = async (
             payment_method_types: ["gcash"],
             description: "Order payment",
             success_url: `${temporaryLink}`,
+            total_amount: totalAmount * 100,
           },
         },
       },
