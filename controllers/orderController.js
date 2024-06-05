@@ -207,16 +207,32 @@ exports.newOrder = async (req, res, next) => {
   if (req.body.paymentInfo === "GCash") {
     const temporaryLink = `${process.env.BASE_URL}/paymongo-gcash/${paymongoToken.token}/${order._id}`;
     console.log(temporaryLink, "temporaryLink");
-
+    // const orderWithPopulatedProducts = await Order.findById(order._id).populate({
+    //   path: 'orderProducts.type',
+    //   select: 'typeofGallon'
+    // });
+    // console.log(orderWithPopulatedProducts)
     try {
+      const orderWithPopulatedProducts = await Order.findById(order._id)
+        .populate({
+          path: "orderProducts.type",
+        })
+        .select("orderProducts");
 
-      const orderWithPopulatedProducts = await Order.findById(order._id).populate({
-        path: 'orderProducts.type',
-        select: 'typeofGallon'
-      });
+      // Replace type object with typeofGallon field
+      const modifiedOrderProducts =
+        orderWithPopulatedProducts.orderProducts.map((product) => ({
+          type: product.type.typeofGallon,
+          quantity: product.quantity,
+          price: product.price,
+        }));
+
+      console.log("PRODUCTS", modifiedOrderProducts);
+
+      console.log("REFILL", order.orderItems);
       const checkoutUrl = await handlePayMongo(
         order.orderItems,
-        orderWithPopulatedProducts,
+        modifiedOrderProducts,
         temporaryLink
       );
       console.log(checkoutUrl, "checkout");
