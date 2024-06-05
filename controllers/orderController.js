@@ -31,19 +31,30 @@ const handlePayMongo = async (
     const allDetails = orderItemsDetails.concat(orderProductsDetails);
 
     // Mapping over allDetails
+    // allDetails.forEach((detail) => {
+    //   lineItems.push({
+    //     currency: "PHP",
+    //     amount: detail.price * detail.quantity * 100, // Assuming price is stored in detail
+    //     name: detail.type,
+    //     quantity: detail.quantity,
+    //   });
+
+    // });
+
     allDetails.forEach((detail) => {
-      // lineItems.push({
-      //   currency: "PHP",
-      //   amount: detail.price * detail.quantity * 100, // Assuming price is stored in detail
-      //   name: detail.type,
-      //   quantity: detail.quantity,
-      // });
-      lineItems.push({
+      const item = {
         currency: "PHP",
-        amount: detail.price * detail.quantity * 100,
-        name: detail.type || (detail.type && detail.type.typeofGallon),
+        amount: detail.price * detail.quantity * 100, // Assuming price is stored in detail
+        name: detail.type,
         quantity: detail.quantity,
-      });
+      };
+
+      // Check if it's from orderProductsDetails and adjust the name accordingly
+      if (detail.hasOwnProperty("typeofGallon")) {
+        item.name = detail.type.typeofGallon;
+      }
+
+      lineItems.push(item);
     });
 
     console.log(lineItems, "line");
